@@ -1,0 +1,22 @@
+---
+# role: ansible-role-postgresql
+# file: tasks/config.yml
+
+- name: Configure hostbased authentication (pg_hba.conf)
+  postgresql_pg_hba:
+    dest: " {{ postgresql_config_path }}/pg_hba.conf"
+    address: "{{ item.address | default(omit) }}"
+    databases: "{{ item.database }}"
+    method: "{{ item.method | default('peer', True) }}"
+    state: "{{ item.state | default(omit) }}"
+    users: "{{ item.user }}"
+  loop: "{{ postgresql_hba_entries }}"
+
+- name: Ensure postgresql unix socket dirs exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: "{{ postgresql_unix_socket_dirs_mode }}"
+  loop: "{{ postgresql_unix_socket_dirs }}"

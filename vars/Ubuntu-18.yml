@@ -1,0 +1,7 @@
+---
+# role: ansible-role-postgresql
+# file: vars/Ubuntu.yml
+
+postgresql_version: "10"
+
+postgresql_daemon: postgresql

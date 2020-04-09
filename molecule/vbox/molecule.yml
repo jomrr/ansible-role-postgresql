@@ -1,0 +1,59 @@
+---
+# role: ansible-role-postgresql
+# file: molecule/vbox/molecule.yml
+
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+    type: virtualbox
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
+  flake8
+platforms:
+  - name: pg-centos7
+    box: "centos/7"
+    cpus: 2
+    memory: 2024
+  - name: pg-centos8
+    box: "centos/8"
+    cpus: 2
+    memory: 2024
+  - name: pg-debian10
+    box: "debian/buster64"
+    cpus: 2
+    memory: 2024
+  - name: pg-fedora31
+    box: "fedora/31-cloud-base"
+    cpus: 2
+    memory: 2024
+  - name: pg-ubuntu18
+    box: "ubuntu/bionic64"
+    cpus: 2
+    memory: 2024
+  - name: pg-ubuntu20
+    box: "ubuntu/focal64"
+    cpus: 2
+    memory: 2024
+provisioner:
+  name: ansible
+  log: True
+  playbooks:
+    prepare: ../resources/playbooks/prepare.yml
+    converge: ../resources/playbooks/converge.yml
+  inventory:
+    group_vars:
+      all:
+        postgresql_enabled: True
+verifier:
+  name: testinfra
+  env:
+    PYTHONWARNINGS: "ignore"
+  directory: ../resources/tests
+  options:
+    v: True
+    sudo: True

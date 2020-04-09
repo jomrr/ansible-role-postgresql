@@ -1,0 +1,10 @@
+---
+# role: ansible-role-postgresql
+# file: vars/main.yml
+
+postgresql_python_libs:
+  - python-psycopg2
+  - python-ipaddress
+
+postgresql_unix_socket_dirs:
+  - /var/run/postgresql

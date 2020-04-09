@@ -1,0 +1,9 @@
+---
+# role: ansible-role-postgresql
+# file: vars/RedHat.yml
+
+postgresql_version: "10"
+
+postgresql_daemon: postgresql
+
+postgresql_python_lib: python3-psycopg2

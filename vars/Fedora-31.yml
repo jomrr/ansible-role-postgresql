@@ -1,0 +1,13 @@
+---
+# role: ansible-role-postgresql
+# file: vars/Fedora.yml
+
+postgresql_version: "11.5"
+
+postgresql_daemon: postgresql
+
+postgresql_python_libs:
+  - python3-psycopg2
+  - python3-ipaddress
+
+postgresql_unix_socket_dirs_mode: '0755'

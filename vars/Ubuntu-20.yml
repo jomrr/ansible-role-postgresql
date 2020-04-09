@@ -1,0 +1,11 @@
+---
+# role: ansible-role-postgresql
+# file: vars/Ubuntu.yml
+
+postgresql_version: "12"
+
+postgresql_daemon: postgresql
+
+postgresql_python_libs:
+  - python3-psycopg2
+  - python3-ipaddress
