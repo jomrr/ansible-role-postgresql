@@ -2,14 +2,14 @@
 # role: ansible-role-postgresql
 # file: tasks/init.yml
 
-- name: Set postgresql environment variables
+- name: "Set postgresql environment variables"
   template:
     src: postgres.sh.j2
     dest: /etc/profile.d/postgres.sh
     mode: 0644
   notify: restart postgresql
 
-- name: Create data_dir
+- name: "Create data_dir"
   file:
     path: "{{ postgresql_data_dir }}"
     owner: "{{ postgresql_user }}"
@@ -17,12 +17,12 @@
     state: directory
     mode: 0700
 
-- name: Check if database is initialized
+- name: "Check if database is initialized"
   stat:
     path: "{{ postgresql_data_dir }}/PG_VERSION"
   register: pgdata_dir_version
 
-- name: Initialize database
+- name: "Initialize database"
   command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_dir }}"
   when: not pgdata_dir_version.stat.exists
   become: true

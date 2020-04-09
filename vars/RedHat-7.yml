@@ -3,5 +3,3 @@
 # file: vars/RedHat-7.yml
 
 postgresql_version: "9.2"
-
-postgresql_daemon: postgresql

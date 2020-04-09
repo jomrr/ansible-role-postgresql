@@ -38,6 +38,6 @@ galaxy_info:
   galaxy_tags:
     - postgres
     - postgresql
-    - postgresql_db
+    - postgresqldb
 
   dependencies: []

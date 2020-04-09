@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+# ===================================================
+# PostgreSQL entry Authentication Configuration File
+# ===================================================
+#
+# This file controls: which hosts are allowed to connect, how entrys
+# are authenticated, which PostgreSQL user names they can use, which
+# databases they can access.  Records take one of these forms:
+#
+# Refer to https://www.postgresql.org/docs/current/static/auth-pg-hba-conf.html
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+#
+{% for entry in postgresql_hba_entries %}
+{{ entry.type }} {{ entry.database }} {{ entry.user }} {{ entry.address | default('') }} {{ entry.ip_address | default('') }} {{ entry.ip_mask | default('') }} {{ entry.auth_method }} {{ entry.auth_options | default("") }}
+{% endfor %}

@@ -20,6 +20,8 @@
   package:
     name: "{{ postgresql_python_libs + postgresql_packages }}"
     state: present
+  tags:
+    - install
 
 - name: "Configure locales for Debian-based systems"
   block:
@@ -34,9 +36,15 @@
         state: restarted
       when: locale_gen_result.changed
   when: ansible_os_family == 'Debian'
+  tags:
+    - locales
 
 - name: Initialize postgresql database
   import_tasks: init.yml
+  tags:
+    - init
 
 - name: Configure postgresql database
   import_tasks: config.yml
+  tags:
+    - config

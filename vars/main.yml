@@ -2,9 +2,15 @@
 # role: ansible-role-postgresql
 # file: vars/main.yml
 
+ansible_python_interpreter: auto
+
+postgresql_daemon: postgresql
+
 postgresql_python_libs:
   - python-psycopg2
   - python-ipaddress
 
-postgresql_unix_socket_dirs:
+postgresql_unix_socket_directories:
   - /var/run/postgresql
+
+postgresql_unix_socket_directories_mode: 02775

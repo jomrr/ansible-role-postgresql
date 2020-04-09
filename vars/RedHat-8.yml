@@ -4,6 +4,5 @@
 
 postgresql_version: "10"
 
-postgresql_daemon: postgresql
-
-postgresql_python_lib: python3-psycopg2
+postgresql_python_libs:
+  - python3-psycopg2

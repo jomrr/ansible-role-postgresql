@@ -8,4 +8,4 @@ postgresql_daemon: "postgresql@{{ postgresql_version }}-main"
 
 postgresql_python_libs:
   - python3-psycopg2
-  - python3-ipaddress
+  - python-ipaddress

@@ -3,5 +3,3 @@
 # file: vars/Ubuntu.yml
 
 postgresql_version: "10"
-
-postgresql_daemon: postgresql

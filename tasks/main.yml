@@ -2,6 +2,6 @@
 # role: ansible-role-postgresql
 # file: tasks/main.yml
 
-- name: Import tasks for role ansible-role-postgresql
+- name: "Import tasks for role ansible-role-postgresql"
   import_tasks: tasks.yml
   when: postgresql_enabled | bool

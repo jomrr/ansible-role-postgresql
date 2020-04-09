@@ -16,9 +16,49 @@ postgresql_locales:
 postgresql_user: postgres
 postgresql_group: postgres
 
+# Global configuration options that will be set in postgresql.conf.
+postgresql_global_config_options:
+  - option: unix_socket_directories
+    value: "{{ postgresql_unix_socket_directories | join(',') }}"
+  - option: listen_addresses
+    value: "{{ postgresql_listen_addresses | join(',') }}"
+
 # Entries for pg_hba.conf (host based authentication).
+# possible keys: type, database, user, address, ip_address, ip_mask, auth_method, auth_options
 postgresql_hba_entries:
-  - { contype: local, database: all, user: postgres, method: peer }
-  - { contype: local, database: all, user: all, method: peer }
-  - { contype: host, database: all, user: all, address: '127.0.0.1/32', method: md5 }
-  - { contype: host, database: all, user: all, address: '::1/128', method: md5 }
+  - { type: local, database: all, user: postgres, auth_method: peer }
+  - { type: local, database: all, user: all, auth_method: peer }
+  - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: md5 }
+
+# Databases to configure.
+postgresql_databases: []
+# - name: foremandb # required; the rest are optional
+#   lc_collate: # defaults to 'en_US.UTF-8'
+#   lc_ctype: # defaults to 'en_US.UTF-8'
+#   encoding: # defaults to 'UTF-8'
+#   template: # defaults to 'template0'
+#   login_host: # defaults to 'localhost'
+#   login_password: # defaults to not set
+#   login_user: # defaults to '{{ postgresql_user }}'
+#   login_unix_socket: # defaults to 1st of postgresql_unix_socket_directories
+#   port: # defaults to not set
+#   owner: # defaults to postgresql_user
+#   state: # defaults to 'present'
+
+# Users to configure.
+postgresql_users: []
+# - name: foreman #required; the rest are optional
+#   password: # defaults to not set
+#   encrypted: # defaults to not set
+#   priv: # defaults to not set
+#   role_attr_flags: # defaults to not set
+#   db: # defaults to not set
+#   login_host: # defaults to 'localhost'
+#   login_password: # defaults to not set
+#   login_user: # defaults to '{{ postgresql_user }}'
+#   login_unix_socket: # defaults to 1st of postgresql_unix_socket_directories
+#   port: # defaults to not set
+#   state: # defaults to 'present'
+
+# Output ansible log data, i.e. when managing users.
+postgresql_no_log: True

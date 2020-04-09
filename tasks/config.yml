@@ -2,21 +2,32 @@
 # role: ansible-role-postgresql
 # file: tasks/config.yml
 
-- name: Configure hostbased authentication (pg_hba.conf)
-  postgresql_pg_hba:
-    dest: " {{ postgresql_config_path }}/pg_hba.conf"
-    address: "{{ item.address | default(omit) }}"
-    databases: "{{ item.database }}"
-    method: "{{ item.method | default('peer', True) }}"
-    state: "{{ item.state | default(omit) }}"
-    users: "{{ item.user }}"
-  loop: "{{ postgresql_hba_entries }}"
+- name: "Configure global settings (postgresql.conf)"
+  lineinfile:
+    dest: "{{ postgresql_config_path }}/postgresql.conf"
+    regexp: "^#?{{ item.option }}.+$"
+    line: "{{ item.option }} = '{{ item.value }}'"
+    state: "{{ item.state | default('present') }}"
+  loop: "{{ postgresql_global_config_options }}"
+  notify: restart postgresql
 
-- name: Ensure postgresql unix socket dirs exist
+# tried using the postgresql_pg_hba module, but it creates strange defaults,
+# which I did not configure, i.e. for localhost replication with md5.
+- name: Configure hostbased authentication (pg_hba.conf)
+  template:
+    src: "pg_hba.conf.j2"
+    dest: "{{ postgresql_config_path }}/pg_hba.conf"
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: 0600
+  notify: restart postgresql
+  when: postgresql_hba_entries | length > 0
+
+- name: "Ensure postgresql unix_socket_directories exist"
   file:
     path: "{{ item }}"
     state: directory
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
-    mode: "{{ postgresql_unix_socket_dirs_mode }}"
-  loop: "{{ postgresql_unix_socket_dirs }}"
+    mode: "{{ postgresql_unix_socket_directories_mode }}"
+  loop: "{{ postgresql_unix_socket_directories }}"

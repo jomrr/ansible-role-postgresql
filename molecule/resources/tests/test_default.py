@@ -1,31 +1,27 @@
 import os
 
+import pytest
+
 import testinfra.utils.ansible_runner
 
 testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
     os.environ['MOLECULE_INVENTORY_FILE']).get_hosts('all')
 
 
-def test_system_info(host):
-    os = host.system_info.distribution
+# the pytest way
+@pytest.mark.parametrize("name", [
+    ("postgresql"),
+])
+def test_packages(host, name):
+    pkg = host.package(name)
+    assert pkg.is_installed
 
-    if os == 'alpine':
-        assert host.file("/etc/os-release").contains("Alpine")
 
-    elif os == 'arch':
-        assert host.file("/etc/os-release").contains("Arch Linux")
-
-    elif os == 'centos':
-        assert host.file("/etc/os-release").contains("CentOS")
-
-    elif os == 'debian':
-        assert host.file("/etc/os-release").contains("Debian")
-
-    elif os == 'manjaro':
-        assert host.file("/etc/os-release").contains("Manjaro")
-
-    elif os == 'oracle':
-        assert host.file("/etc/os-release").contains("Oracle")
-
-    elif os == 'ubuntu':
-        assert host.file("/etc/os-release").contains("Ubuntu")
+def test_service(host):
+    # just for demonstration
+    if host.system_info.distribution == 'redhat':
+        daemon = 'postgresql'
+    else:
+        daemon = 'postgresql'
+    assert host.service(daemon).is_enabled
+    assert host.service(daemon).is_running
