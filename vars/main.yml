@@ -4,7 +4,7 @@
 
 ansible_python_interpreter: auto
 
-postgresql_daemon: postgresql
+postgresql_daemon: "postgresql"
 
 postgresql_python_libs:
   - python-psycopg2

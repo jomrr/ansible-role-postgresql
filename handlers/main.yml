@@ -2,6 +2,11 @@
 # role: ansible-role-postgresql
 # file: handlers/main.yml
 
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+  when: ansible_service_mgr == 'systemd'
+
 - name: restart postgresql
   service:
     name: "{{ postgresql_daemon }}"

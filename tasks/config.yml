@@ -9,7 +9,9 @@
     line: "{{ item.option }} = '{{ item.value }}'"
     state: "{{ item.state | default('present') }}"
   loop: "{{ postgresql_global_config_options }}"
-  notify: restart postgresql
+  notify:
+    - reload systemd
+    - restart postgresql
 
 # tried using the postgresql_pg_hba module, but it creates strange defaults,
 # which I did not configure, i.e. for localhost replication with md5.

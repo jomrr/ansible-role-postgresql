@@ -18,10 +18,6 @@ def test_packages(host, name):
 
 
 def test_service(host):
-    # just for demonstration
-    if host.system_info.distribution == 'redhat':
-        daemon = 'postgresql'
-    else:
-        daemon = 'postgresql'
+    daemon = 'postgresql'
     assert host.service(daemon).is_enabled
     assert host.service(daemon).is_running
