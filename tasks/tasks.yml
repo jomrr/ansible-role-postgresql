@@ -13,7 +13,7 @@
   loop_control:
     loop_var: vars_file
 
-- name: Set os_family dependent variables
+- name: "Set os_family dependent variables"
   include_vars: '{{ ansible_os_family }}.yml'
 
 - name: "Install packages for ansible-role-postgresql"
@@ -39,12 +39,22 @@
   tags:
     - locales
 
-- name: Initialize postgresql database
+- name: "Initialize postgresql database"
   import_tasks: init.yml
   tags:
     - init
 
-- name: Configure postgresql database
+- name: "Configure postgresql server"
   import_tasks: config.yml
   tags:
     - config
+
+- name: "Configure postgresql databases"
+  import_tasks: db.yml
+  tags:
+    - users
+
+- name: "Configure postgresql users"
+  import_tasks: user.yml
+  tags:
+    - users
