@@ -1,21 +1,23 @@
 # ansible-role-postgresql
 
-Ansible role for setting up postgresql.
+![GitHub](https://img.shields.io/github/license/jam82/ansible-role-postgresql) [![Build Status](https://travis-ci.org/jam82/ansible-role-postgresql.svg?branch=master)](https://travis-ci.org/jam82/ansible-role-postgresql)
+
+**Ansible role for setting up postgresql.**
 
 By default this role sets up a PostgreSQL database with the following settings
 
-* default tablespace
-* listen_addresses = localhost
-* socket auth for postgresql user and all local users
-* md5 auth for localhost only
-* NO replication
+- default tablespace
+- listen_addresses = localhost
+- socket auth for postgresql user and all local users
+- md5 auth for localhost only
+- NO replication
 
 ## Supported Platforms
 
-* CentOS 7, 8
-* Debian 10
-* Fedora 31
-* Ubuntu 18.04, 20.04
+- CentOS 7, 8
+- Debian 10
+- Fedora 31
+- Ubuntu 18.04, 20.04
 
 ## Requirements
 
@@ -25,19 +27,72 @@ Ansible 2.9 or higher is recommended.
 
 Variables and defaults for this role:
 
-| variable | default value in defaults/main.yml | description |
-| -------- | ---------------------------------- | ----------- |
-| postgresql_enabled | False | determine whether role is enabled (True) or not (False) |
-| postgresql_listen_addresses | ['localhost'] | Listen addressess for daemon |
-| postgresql_locales | ['en_US.UTF-8', 'de_DE.UTF-8'] | Supported locales (on Debian-based OSes) |
-| postgresql_user | 'postgres' | The postgres user |
-| postgresql_group | 'postgres' | The postgres group |
-| postgresql_global_config_options | [{option:..., value: ...}, ...] | postgresql.conf: see [defaults/main.yml](https://github.com/jam82/ansible-role-postgresql/blob/master/defaults/main.yml) |
-| postgresql_hba_entries | [{type: ...,...},...] | pg_hba.conf: see [defaults/main.yml](https://github.com/jam82/ansible-role-postgresql/blob/master/defaults/main.yml)
-| postgresql_databases | [{name: exampledb,...}...] | Configured databases: see [defaults/main.yml](https://github.com/jam82/ansible-role-postgresql/blob/master/defaults/main.yml)
-| postgresql_users | [{name: example,...}...] | Configured users: see [defaults/main.yml](https://github.com/jam82/ansible-role-postgresql/blob/master/defaults/main.yml)
-| postgresql_no_log | True | Boolean for controlling the no_log option when creating users |
+```yaml
+---
+# role: ansible-role-postgresql
+# file: defaults/main.yml
 
+# The role is disabled by default, so you do not get in trouble.
+# Checked in tasks/main.yml which includes tasks.yml if enabled.
+postgresql_enabled: False
+
+postgresql_listen_addresses:
+  - localhost
+
+postgresql_locales:
+  - 'de_DE.UTF-8'
+  - 'en_US.UTF-8'
+
+postgresql_user: postgres
+postgresql_group: postgres
+
+# Global configuration options that will be set in postgresql.conf.
+postgresql_global_config_options:
+  - option: unix_socket_directories
+    value: "{{ postgresql_unix_socket_directories | join(',') }}"
+  - option: listen_addresses
+    value: "{{ postgresql_listen_addresses | join(',') }}"
+
+# Entries for pg_hba.conf (host based authentication).
+# possible keys: type, database, user, address, ip_address, ip_mask, auth_method, auth_options
+postgresql_hba_entries:
+  - { type: local, database: all, user: postgres, auth_method: peer }
+  - { type: local, database: all, user: all, auth_method: peer }
+  - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: md5 }
+
+# Databases to configure.
+postgresql_databases: []
+# - name: foremandb # required; the rest are optional
+#   lc_collate: # defaults to 'en_US.UTF-8'
+#   lc_ctype: # defaults to 'en_US.UTF-8'
+#   encoding: # defaults to 'UTF-8'
+#   template: # defaults to 'template0'
+#   login_host: # defaults to 'localhost'
+#   login_password: # defaults to not set
+#   login_user: # defaults to '{{ postgresql_user }}'
+#   login_unix_socket: # defaults to 1st of postgresql_unix_socket_directories
+#   port: # defaults to not set
+#   owner: # defaults to postgresql_user
+#   state: # defaults to 'present'
+
+# Users to configure.
+postgresql_users: []
+# - name: foreman #required; the rest are optional
+#   password: # defaults to not set
+#   encrypted: # defaults to not set
+#   priv: # defaults to not set
+#   role_attr_flags: # defaults to not set
+#   db: # defaults to not set
+#   login_host: # defaults to 'localhost'
+#   login_password: # defaults to not set
+#   login_user: # defaults to '{{ postgresql_user }}'
+#   login_unix_socket: # defaults to 1st of postgresql_unix_socket_directories
+#   port: # defaults to not set
+#   state: # defaults to 'present'
+
+# Do not output ansible log data, i.e. when managing users.
+postgresql_no_log: True
+```
 
 ## Dependencies
 
@@ -64,11 +119,11 @@ This role is highly inspired by [Jeff Geerlings postgresql role](https://github.
 
 ## License and Author
 
-* Author:: Jonas Mauer (<jam@kabelmail.net>)
-* Copyright:: 2019, Jonas Mauer
+- Author:: [jam82](https://github.com/jam82/)
+- Copyright:: 2020, [jam82](https://github.com/jam82/)
 
-Licensed under MIT License;
-See LICENSE file in repository.
+Licensed under [MIT License](https://opensource.org/licenses/MIT).
+See [LICENSE](https://github.com/jam82/ansible-role-updates/blob/master/LICENSE) file in repository.
 
 ## References
 

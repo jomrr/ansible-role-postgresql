@@ -60,5 +60,5 @@ postgresql_users: []
 #   port: # defaults to not set
 #   state: # defaults to 'present'
 
-# Output ansible log data, i.e. when managing users.
+# Do not output ansible log data, i.e. when managing users.
 postgresql_no_log: True
