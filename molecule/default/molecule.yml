@@ -4,19 +4,108 @@
 
 dependency:
   name: galaxy
+  options:
+    requirements-file: requirements.yml
 driver:
   name: docker
 lint: |
   set -e
   yamllint .
   ansible-lint
-  flake8
 platforms:
-  - name: pg-default
-    image: ${MOLECULE_DIST:-"jam82/molecule-debian:10"}
-    command: ${MOLECULE_DOCKER_CMD:-""}
-    pre_build_image: True
-    privileged: True
+  - name: alpine-postgresql
+    image: "jam82/molecule-alpine:latest"
+    command: ""
+    pre_build_image: true
+    privileged: true
+    tmpfs:
+      - /tmp
+      - /run
+  - name: amazon-postgresql
+    image: "jam82/molecule-amazonlinux:latest"
+    command: ""
+    pre_build_image: true
+    privileged: true
+    tmpfs:
+      - /tmp
+      - /run
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+  - name: arch-postgresql
+    image: "jam82/molecule-archlinux:latest"
+    command: ""
+    pre_build_image: true
+    privileged: true
+    tmpfs:
+      - /tmp
+      - /run
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+  - name: centos-postgresql
+    image: "jam82/molecule-centos:latest"
+    command: ""
+    pre_build_image: true
+    privileged: true
+    tmpfs:
+      - /tmp
+      - /run
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+  - name: debian-postgresql
+    image: "jam82/molecule-debian:latest"
+    command: ""
+    pre_build_image: true
+    privileged: true
+    tmpfs:
+      - /tmp
+      - /run
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+  - name: fedora-postgresql
+    image: "jam82/molecule-fedora:latest"
+    command: ""
+    pre_build_image: true
+    privileged: true
+    tmpfs:
+      - /tmp
+      - /run
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+  - name: opensuse-postgresql
+    image: "jam82/molecule-opensuse:15"
+    command: ""
+    pre_build_image: true
+    privileged: true
+    tmpfs:
+      - /tmp
+      - /run
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+  - name: tumbleweed-postgresql
+    image: "jam82/molecule-opensuse:tumbleweed"
+    command: ""
+    pre_build_image: true
+    privileged: true
+    tmpfs:
+      - /tmp
+      - /run
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+  - name: oracle-postgresql
+    image: "jam82/molecule-oraclelinux:latest"
+    command: ""
+    pre_build_image: true
+    privileged: true
+    tmpfs:
+      - /tmp
+      - /run
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+  - name: ubuntu-postgresql
+    image: "jam82/molecule-ubuntu:latest"
+    command: ""
+    pre_build_image: true
+    privileged: true
     tmpfs:
       - /tmp
       - /run
@@ -24,19 +113,47 @@ platforms:
       - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
 provisioner:
   name: ansible
-  log: True
+  log: true
   playbooks:
     prepare: ../resources/playbooks/prepare.yml
     converge: ../resources/playbooks/converge.yml
+    verify: ../resources/playbooks/verify.yml
   inventory:
     group_vars:
       all:
-        postgresql_enabled: True
+        postgresql_role_enabled: true
+        postgresql_no_log: false
+        postgresql_users:
+          - name: myuser
+            password: 'SuperS3cret+'
+        postgresql_databases:
+          - name: mydb
+            owner: myuser
+    host_vars:
+      arch-postgresql:
+        postgresql_conf:
+          - key: listen_addresses
+            value: "{{ postgresql_listen_addresses | join(',') }}"
+          - key: port
+            value: "{{ postgresql_port }}"
+            state: present
+          - key: unix_socket_directories
+            value: "{{ postgresql_unix_socket_directories | join(',') }}"
+          - key: password_encryption
+            value: 'scram-sha-256'
+          - key: timezone
+            value: 'Europe/Berlin'
+          - key: log_timezone
+            value: 'Europe/Berlin'
+          - key: datestyle
+            value: 'iso, ymd'
+          - key: default_text_search_config
+            value: 'pg_catalog.english'
+          - key: include_dir
+            value: conf.d
+        postgresql_hba:
+          - { type: local, database: all, user: postgres, auth_method: peer }
+          - { type: local, database: all, user: all, auth_method: scram-sha-256 }
+          - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: scram-sha-256 }
 verifier:
-  name: testinfra
-  env:
-    PYTHONWARNINGS: "ignore"
-  directory: ../resources/tests
-  options:
-    v: True
-    sudo: True
+  name: ansible

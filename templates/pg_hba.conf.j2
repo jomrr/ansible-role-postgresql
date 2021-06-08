@@ -1,4 +1,7 @@
-# {{ ansible_managed }}
+# {{ template_destpath }}
+# vi: set ft=shell noai sw=4 tw=4 ts=4 et:
+{{ ansible_managed | comment }}
+#
 # ===================================================
 # PostgreSQL entry Authentication Configuration File
 # ===================================================
@@ -11,6 +14,6 @@
 #
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
 #
-{% for entry in postgresql_hba_entries %}
-{{ entry.type }} {{ entry.database }} {{ entry.user }} {{ entry.address | default('') }} {{ entry.ip_address | default('') }} {{ entry.ip_mask | default('') }} {{ entry.auth_method }} {{ entry.auth_options | default("") }}
+{% for entry in postgresql_hba %}
+{{ entry.type }} {{ entry.database }} {{ entry.user }} {{ entry.address | default('') }} {{ entry.ip_address | default('') }} {{ entry.ip_mask | default('') }} {{ entry.auth_method }} {{ entry.auth_options | default('') }}
 {% endfor %}

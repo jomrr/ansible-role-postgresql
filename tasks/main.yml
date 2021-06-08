@@ -2,6 +2,12 @@
 # role: ansible-role-postgresql
 # file: tasks/main.yml
 
-- name: "Import tasks for role ansible-role-postgresql"
-  import_tasks: tasks.yml
-  when: postgresql_enabled | bool
+- name: "Tasks for ansible-role-postgresql"
+  ansible.builtin.include_tasks: tasks.yml
+  when: postgresql_role_enabled | bool
+  tags:
+    - postgresql:config
+    - postgresql:db
+    - postgresql:initdb
+    - postgresql:pkg
+    - postgresql:user

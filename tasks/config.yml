@@ -2,34 +2,61 @@
 # role: ansible-role-postgresql
 # file: tasks/config.yml
 
-- name: "Configure global settings (postgresql.conf)"
-  lineinfile:
+# - name: "Check for capabilites in default config"
+#   command: "cat {{ postgresql_config_path }}/postgresql.conf"
+#   changed_when: false
+#   register: _postgresql_default_conf
+
+- name: "Configure global settings in postgresql.conf"
+  ansible.builtin.lineinfile:
     dest: "{{ postgresql_config_path }}/postgresql.conf"
-    regexp: "^#?{{ item.option }}.+$"
-    line: "{{ item.option }} = '{{ item.value }}'"
+    regexp: "^#?{{ item.key }}.+$"
+    line: "{{ item.key }} = '{{ item.value }}'"
     state: "{{ item.state | default('present') }}"
-  loop: "{{ postgresql_global_config_options }}"
+  loop: "{{ postgresql_conf }}"
+  tags:
+    - postgresql:config
   notify:
     - reload systemd
     - restart postgresql
 
-# tried using the postgresql_pg_hba module, but it creates strange defaults,
-# which I did not configure, i.e. for localhost replication with md5.
+# Tried using the postgresql_pg_hba module, but it creates strange defaults.
 - name: Configure hostbased authentication (pg_hba.conf)
-  template:
+  ansible.builtin.template:
     src: "pg_hba.conf.j2"
     dest: "{{ postgresql_config_path }}/pg_hba.conf"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
     mode: 0600
+  tags:
+    - postgresql:config
   notify: restart postgresql
-  when: postgresql_hba_entries | length > 0
+  when: postgresql_hba | length > 0
 
-- name: "Ensure postgresql unix_socket_directories exist"
-  file:
-    path: "{{ item }}"
+- name: "Ensure include_dir exists if configured"
+  ansible.builtin.file:
+    path: "{{ postgresql_config_path }}/{{ item.value }}"
     state: directory
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
-    mode: "{{ postgresql_unix_socket_directories_mode }}"
-  loop: "{{ postgresql_unix_socket_directories }}"
+    mode: 0700
+  loop: "{{ postgresql_conf }}"
+  when: item.key == 'include_dir'
+  tags:
+    - postgresql:config
+
+# - name: "Set permissions on unix_socket_directories"
+#   ansible.builtin.file:
+#     path: "{{ item }}"
+#     state: directory
+#     owner: "{{ postgresql_user }}"
+#     group: "{{ postgresql_group }}"
+#     mode: "{{ postgresql_unix_socket_directories_mode }}"
+#   loop: "{{ postgresql_unix_socket_directories }}"
+#   tags:
+#     - postgresql:config
+
+- name: flush handlers
+  ansible.builtin.meta: flush_handlers
+  tags:
+    - postgresql:config
