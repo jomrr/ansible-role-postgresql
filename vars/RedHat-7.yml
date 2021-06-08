@@ -1,5 +1,0 @@
----
-# role: ansible-role-postgresql
-# file: vars/RedHat-7.yml
-
-postgresql_version: "9.2"

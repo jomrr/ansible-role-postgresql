@@ -1,0 +1,20 @@
+---
+# role: ansible-role-postgresql
+# file: tasks/facts.yml
+
+# did not work with initial setting of btrfs_mpts to False.
+# maybe it's too late... not elegant, but it works.
+- name: "Check if postgresql_data_dir on btrfs"
+  ansible.builtin.set_fact:
+    postgresql_on_btrfs: >-
+      {%- set btrfs_mpts = [] -%}
+      {%- for mpt in ansible_facts['mounts'] -%}
+        {%- if mpt.fstype == 'btrfs' -%}
+          {%- set contains = mpt['mount'] in postgresql_data_dir -%}
+          {% set btrfs_mpts = btrfs_mpts.extend([contains]) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ True if True in btrfs_mpts else False }}
+  tags:
+    - postgresql:facts
+    - postgresql:initdb

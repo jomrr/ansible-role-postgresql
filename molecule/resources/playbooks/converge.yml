@@ -4,6 +4,6 @@
 
 - name: Converge
   hosts: all
-  become: True
+  become: true
   roles:
-    - role: ansible-role-postgresql
+    - role: ../../../../

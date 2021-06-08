@@ -1,0 +1,62 @@
+---
+# role: ansible-role-postgresql
+# file: todo.yml
+
+################################################################################
+# defaults/main.yml
+################################################################################
+
+# Custom conf files to include.
+# Add the following per directory to postgresql_conf for this to work:
+# - key: include_dir
+#   value: 'conf.d'
+# This is disabled by default because Amazon Linuxs' 9.2 version of postgres
+# does not support this directive.
+postgresql_conf_include_files: []
+#  - name: 'conf.d/wal.conf'
+#    options:
+#      max_wal_size: 1GB
+#      min_wal_size: 96MB
+
+# Tablespaces:
+# see: https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_tablespace_module.html
+postgresql_tablespaces: []
+#  - tablespace: nvme   # required; the rest is optional
+#    state:             # default('present')
+#    ca_cert:           # default(omit)
+#    db:                # default(omit)
+#    location:          # default(omit)
+#    login_host:        # default(omit)
+#    login_password:    # default(omit)
+#    login_unix_socket: # default(omit)
+#    login_user:        # default(omit)
+#    owner:             # default(omit)
+#    port:              # default(omit)
+#    session_role:      # default(omit)
+#    set:               # default(omit)
+#    ssl_mode:          # default(omit)
+#    trust_input:       # default(omit)
+
+################################################################################
+# tasks/facts.yml
+################################################################################
+
+- name: "Get postgres version"
+  ansible.builtin.command: "{{ postgresql_bin_path }}/postgres -V"
+  changed_when: false
+  register: _postgresql_version
+
+- name: "Set fact postgesql version info"
+  ansible.builtin.set_fact:
+    postgresql_version: >-
+      {%- set version = _postgresql_version.stdout.split(' ')[2] -%}
+      {{ version }}
+
+- name: "Set facts postgesql_major_version and postgresql_minor_version"
+  ansible.builtin.set_fact:
+    postgresql_major_version: >-
+      {%- set major_version = postgresql_version.split('.')[0] -%}
+      {{ major_version | int }}
+    postgresql_minor_version: >-
+      {%- set minor_version = postgresql_version.split('.')[1] -%}
+      {{ minor_version | int }}

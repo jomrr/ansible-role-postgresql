@@ -4,45 +4,63 @@
 
 dependency:
   name: galaxy
+  options:
+    requirements-file: requirements.yml
 driver:
   name: vagrant
   provider:
     name: libvirt
     type: libvirt
-    options:
-      memory: 2048
-      cpus: 2
 lint: |
   set -e
   yamllint .
   ansible-lint
   flake8
 platforms:
-  - name: pg-arch
+  - name: arch-postgresql
     box: "archlinux/archlinux"
-  - name: pg-centos8
+    memory: 2048
+    cpus: 2
+  - name: centos-postgresql
     box: "centos/8"
-  - name: pg-debian10
-    box: "debian/buster64"
-  - name: pg-fedora31
-    box: "fedora/31-cloud-base"
-  - name: pg-ubuntu18
-    box: "generic/ubuntu1804"
+    memory: 2048
+    cpus: 2
+  - name: debian-postgresql
+    box: "debian/bullseye64"
+    memory: 2048
+    cpus: 2
+  - name: fedora-postgresql
+    box: "fedora/33-cloud-base"
+    memory: 2048
+    cpus: 2
+  - name: opensuse-postgresql
+    box: "generic/opensuse15"
+    memory: 2048
+    cpus: 2
+  - name: oracle-postgresql
+    box: "generic/oracle8"
+    memory: 2048
+    cpus: 2
+  - name: ubuntu-postgresql
+    box: "generic/ubuntu2004"
+    memory: 2048
+    cpus: 2
 provisioner:
   name: ansible
-  log: True
+  log: true
   playbooks:
     prepare: ../resources/playbooks/prepare.yml
     converge: ../resources/playbooks/converge.yml
+    verify: ../resources/playbooks/verify.yml
   inventory:
     group_vars:
       all:
-        postgresql_enabled: True
+        postgresql_role_enabled: true
 verifier:
   name: testinfra
   env:
     PYTHONWARNINGS: "ignore"
   directory: ../resources/tests
   options:
-    v: True
-    sudo: True
+    v: true
+    sudo: true
