@@ -8,6 +8,8 @@
 
 > This role does not setup locales on the target systems.
 
+Please read section Variables to adjust the configuration.
+
 ## Supported Versions and Platforms
 
 Ansible versions:
