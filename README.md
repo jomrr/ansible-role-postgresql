@@ -12,27 +12,24 @@ Please read section Variables to adjust the configuration.
 
 ## Supported Versions and Platforms
 
-Ansible versions:
-
-- 2.9
-- 2.10
-- 4.0 (core 2.11.x)
-
-Platforms:
-
-- Alpine 3.11, 3.12, 3.13
-- Almalinux 8
-- Archlinux
-- CentOS 7, 8
-- Debian 10, 11
-- Fedora 33, 34
-- OpenSuse Leap 15.x, Tumbleweed
-- OracleLinux 7, 8
-- Ubuntu 18.04, 20.04
+| OS Family | Distribution  | Latest | Supported Version(s) | Comment |
+|-----------|---------------|--------|----------------------|---------|
+| Alpine    | Alpine        | :heavy_check_mark: | 3.12, 3.13 | |
+| Archlinux | Archlinux     | :heavy_check_mark: | - | |
+|           | Manjaro       | :heavy_check_mark: | - | |
+| Debian    | Debian        | :heavy_check_mark: | 10, 11 | |
+|           | Ubuntu        | :heavy_check_mark: | 18.04, 20.04 | |
+| RedHat    | Almalinux     | :heavy_check_mark: | 8 | |
+|           | Amazonlinux   | :x: | - | not tested, image not working |
+|           | Centos        | :heavy_check_mark: | 8 | |
+|           | Fedora        | :heavy_check_mark: | 33, 34, Rawhide | |
+|           | Oraclelinux   | :heavy_check_mark: | 7, 8 | |
+| Suse      | OpenSuse Leap | :heavy_check_mark: | 15.1, 15.2, 15.3 | |
+|           | Tumbleweed    | :heavy_check_mark: | - | |
 
 ## Requirements
 
-Ansible 2.9 or higher.
+Ansible 2.9 or higher is recommended.
 
 ## Variables
 

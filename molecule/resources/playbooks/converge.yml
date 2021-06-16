@@ -6,4 +6,4 @@
   hosts: all
   become: true
   roles:
-    - role: ../../../../
+    - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"
