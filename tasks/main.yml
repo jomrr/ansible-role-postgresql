@@ -2,12 +2,85 @@
 # role: ansible-role-postgresql
 # file: tasks/main.yml
 
-- name: "Tasks for ansible-role-postgresql"
-  ansible.builtin.include_tasks: tasks.yml
-  when: postgresql_role_enabled | bool
+- name: "Postgresql | Install packages"
+  ansible.builtin.package:
+    name: "{{ postgresql_packages + postgresql_python_libs }}"
+    state: present
+  tags:
+    - postgresql:install
+
+- name: "Postgresql | Set role specific facts"
+  ansible.builtin.import_tasks: facts.yml
+  tags:
+    - postgresql:facts
+    - postgresql:initdb
+
+- name: "Postgresql | Initialize with initdb"
+  ansible.builtin.import_tasks: initdb.yml
+  tags:
+    - postgresql:initdb
+
+- name: "Postgresql | Configure postgresql"
+  ansible.builtin.import_tasks: config.yml
   tags:
     - postgresql:config
-    - postgresql:db
-    - postgresql:initdb
-    - postgresql:pkg
+
+- name: "Postgresql | Create users"
+  become: true
+  become_user: "{{ postgresql_user }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  community.general.postgresql_user:
+    name: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+    ca_cert: "{{ item.ca_cert | default(omit) }}"
+    conn_limit: "{{ item.conn_limit | default(omit) }}"
+    db: "{{ item.db | default(omit) }}"
+    encrypted: "{{ item.encrypted | default(omit) }}"
+    expires: "{{ item.expires | default(omit) }}"
+    fail_on_user: "{{ item.fail_on_user | default(omit) }}"
+    groups: "{{ item.groups | default(omit) }}"
+    login_host: "{{ item.login_host | default(omit) }}"
+    login_password: "{{ item.login_password | default(omit) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(omit) }}"
+    login_user: "{{ item.login_user | default(omit) }}"
+    no_password_changes: "{{ item.no_password_changes | default(omit) }}"
+    password: "{{ item.password | default(omit) }}"
+    port: "{{ item.port | default(omit) }}"
+    role_attr_flags: "{{ item.role_attr_flags | default(omit) }}"
+    session_role: "{{ item.session_role | default(omit) }}"
+    ssl_mode: "{{ item.ssl_mode | default(omit) }}"
+    trust_input: "{{ item.trust_input | default(omit) }}"
+  loop: "{{ postgresql_users }}"
+  tags:
     - postgresql:user
+
+- name: "Postgresql | Create databases"
+  become: true
+  become_user: "{{ postgresql_user }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  community.general.postgresql_db:
+    name: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+    ca_cert: "{{ item.ca_cert | default(omit) }}"
+    conn_limit: "{{ item.conn_limit | default(omit) }}"
+    dump_extra_args: "{{ item.dump_extra_args | default(omit) }}"
+    encoding: "{{ item.encoding | default(omit) }}"
+    lc_collate: "{{ item.lc_collate | default(omit) }}"
+    lc_ctype: "{{ item.lc_ctype | default(omit) }}"
+    login_host: "{{ item.login_host | default(omit) }}"
+    login_password: "{{ item.login_password | default(omit) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(omit) }}"
+    login_user: "{{ item.login_user | default(omit) }}"
+    maintenance_db: "{{ item.maintenance_db | default(omit) }}"
+    owner: "{{ item.owner | default(omit) }}"
+    port: "{{ item.port | default(omit) }}"
+    session_role: "{{ item.session_role | default(omit) }}"
+    ssl_mode: "{{ item.ssl_mode | default(omit) }}"
+    tablespace: "{{ item.tablespace | default(omit) }}"
+    target: "{{ item.target | default(omit) }}"
+    target_opts: "{{ item.target_opts | default(omit) }}"
+    template: "{{ item.template | default(omit) }}"
+    trust_input: "{{ item.trust_input | default(omit) }}"
+  loop: "{{ postgresql_databases }}"
+  tags:
+    - postgresql:db

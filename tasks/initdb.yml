@@ -2,17 +2,17 @@
 # role: ansible-role-postgresql
 # file: tasks/initdb.yml
 
-- name: "Create data_dir"
+- name: "Postgresql | Create data_dir"
   ansible.builtin.file:
     path: "{{ postgresql_data_dir }}"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
     state: directory
-    mode: 0700
+    mode: '0700'
   tags:
     - postgresql:initdb
 
-- name: "Disable btrfs copy-on-write for postgresql_data_dir"
+- name: "Postgresql | Disable btrfs copy-on-write for postgresql_data_dir"
   ansible.builtin.file:
     path: "{{ postgresql_data_dir }}"
     attr: "+C"
@@ -20,7 +20,7 @@
   tags:
     - postgresql:initdb
 
-- name: "Initialize database"
+- name: "Postgresql | Initialize database"
   ansible.builtin.command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_dir }}"
   args:
     creates: "{{ postgresql_data_dir }}/PG_VERSION"

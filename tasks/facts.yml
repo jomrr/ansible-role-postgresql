@@ -4,7 +4,7 @@
 
 # did not work with initial setting of btrfs_mpts to False.
 # maybe it's too late... not elegant, but it works.
-- name: "Check if postgresql_data_dir on btrfs"
+- name: "Postgresql | Check if postgresql_data_dir on btrfs"
   ansible.builtin.set_fact:
     postgresql_on_btrfs: >-
       {%- set btrfs_mpts = [] -%}

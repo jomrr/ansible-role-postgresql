@@ -27,7 +27,7 @@ postgresql_unix_socket_directories:
 # This allows local users to authenticate via socket.
 # Set to something more restrictive if you do not need that.
 # Owner and group are postgres.
-postgresql_unix_socket_directories_mode: 02775
+postgresql_unix_socket_directories_mode: '02775'
 
 # Global configuration options that will be set in postgresql.conf.
 # Alter the distribution configuration file via lineinfile.
@@ -56,7 +56,6 @@ postgresql_conf:
     value: 'pg_catalog.english'
 
 # Entries for pg_hba.conf (host based authentication).
-# These are compatibility settings for Amazon Linuxs' version 9.2 of postgres.
 # Change on versions >=10 and e.g. use scram-sha-256 instead of ident:
 #  - { type: local, database: all, user: postgres, auth_method: peer }
 #  - { type: local, database: all, user: all, auth_method: scram-sha-256 }
@@ -65,7 +64,7 @@ postgresql_conf:
 # type, database, user, address, ip_address, ip_mask, auth_method, auth_options
 postgresql_hba:
   - { type: local, database: all, user: all, auth_method: peer }
-  - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: ident }
+  - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: scram-sha-256 }
 
 # Databases.
 # see: https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_db_module.html
@@ -112,7 +111,6 @@ postgresql_users: []
 #    no_password_changes: # default(omit)
 #    password:            # default(omit)
 #    port:                # default(omit)
-#    priv:                # default(omit)
 #    role_attr_flags:     # default(omit)
 #    session_role:        # default(omit)
 #    ssl_mode:            # default(omit)

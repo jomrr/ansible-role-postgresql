@@ -2,12 +2,12 @@
 # role: ansible-role-postgresql
 # file: tasks/config.yml
 
-# - name: "Check for capabilites in default config"
+# - name: "Postgresql | Check for capabilites in default config"
 #   command: "cat {{ postgresql_config_path }}/postgresql.conf"
 #   changed_when: false
 #   register: _postgresql_default_conf
 
-- name: "Configure global settings in postgresql.conf"
+- name: "Postgresql | Configure global settings in postgresql.conf"
   ansible.builtin.lineinfile:
     dest: "{{ postgresql_config_path }}/postgresql.conf"
     regexp: "^#?{{ item.key }}.+$"
@@ -21,31 +21,31 @@
     - restart postgresql
 
 # Tried using the postgresql_pg_hba module, but it creates strange defaults.
-- name: Configure hostbased authentication (pg_hba.conf)
+- name: "Postgresql | Configure hostbased authentication (pg_hba.conf)"
   ansible.builtin.template:
     src: "pg_hba.conf.j2"
     dest: "{{ postgresql_config_path }}/pg_hba.conf"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
-    mode: 0600
+    mode: '0600'
   tags:
     - postgresql:config
   notify: restart postgresql
   when: postgresql_hba | length > 0
 
-- name: "Ensure include_dir exists if configured"
+- name: "Postgresql | Ensure include_dir exists if configured"
   ansible.builtin.file:
     path: "{{ postgresql_config_path }}/{{ item.value }}"
     state: directory
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
-    mode: 0700
+    mode: '0700'
   loop: "{{ postgresql_conf }}"
   when: item.key == 'include_dir'
   tags:
     - postgresql:config
 
-# - name: "Set permissions on unix_socket_directories"
+# - name: "Postgresql | Set permissions on unix_socket_directories"
 #   ansible.builtin.file:
 #     path: "{{ item }}"
 #     state: directory
@@ -56,7 +56,7 @@
 #   tags:
 #     - postgresql:config
 
-- name: flush handlers
+- name: "Postgresql | Flush handlers"
   ansible.builtin.meta: flush_handlers
   tags:
     - postgresql:config
