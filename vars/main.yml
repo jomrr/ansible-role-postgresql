@@ -1,5 +1,5 @@
 ---
-# role: ansible-role-postgresql
+# role: jomrr.postgresql
 # file: vars/main.yml
 
 ################################################################################
@@ -45,13 +45,13 @@ _postgresql_python_libs:
     - python3-psycopg2
 
 postgresql_python_libs: >-
-  {{   _postgresql_python_libs[ansible_distribution + '-' + ansible_distribution_major_version]
-  if   _postgresql_python_libs[ansible_distribution + '-' + ansible_distribution_major_version] is defined
-  else _postgresql_python_libs[ansible_os_family + '-' + ansible_distribution_major_version]
-  if   _postgresql_python_libs[ansible_os_family + '-' + ansible_distribution_major_version] is defined
-  else _postgresql_python_libs[ansible_distribution]
-  if   _postgresql_python_libs[ansible_distribution] is defined
-  else _postgresql_python_libs[ansible_os_family] }}
+  {{ _postgresql_python_libs[ansible_distribution + '-' + ansible_distribution_major_version]
+    if _postgresql_python_libs[ansible_distribution + '-' + ansible_distribution_major_version] is defined
+    else _postgresql_python_libs[ansible_os_family + '-' + ansible_distribution_major_version]
+    if _postgresql_python_libs[ansible_os_family + '-' + ansible_distribution_major_version] is defined
+    else _postgresql_python_libs[ansible_distribution]
+    if _postgresql_python_libs[ansible_distribution] is defined
+    else _postgresql_python_libs[ansible_os_family] }}
 
 ################################################################################
 # Fixed configuration, daemon name, paths, socket, dist versions etc.
@@ -71,9 +71,9 @@ _postgresql_dist_version:
   Ubuntu-20: 12
 
 postgresql_dist_version: >-
-  {{   _postgresql_dist_version[ansible_distribution + '-' + ansible_distribution_major_version]
-  if   _postgresql_dist_version[ansible_distribution + '-' + ansible_distribution_major_version] is defined
-  else _postgresql_dist_version['default'] }}
+  {{ _postgresql_dist_version[ansible_distribution + '-' + ansible_distribution_major_version]
+    if _postgresql_dist_version[ansible_distribution + '-' + ansible_distribution_major_version] is defined
+    else _postgresql_dist_version['default'] }}
 
 # Location of the default data directory
 _postgresql_default_data_dir:
@@ -83,9 +83,9 @@ _postgresql_default_data_dir:
   Debian: "/var/lib/postgresql/{{ postgresql_dist_version }}/main"
 
 postgresql_default_data_dir: >-
-  {{   _postgresql_default_data_dir[ansible_os_family]
-  if   _postgresql_default_data_dir[ansible_os_family] is defined
-  else _postgresql_default_data_dir['default'] }}
+  {{ _postgresql_default_data_dir[ansible_os_family]
+    if _postgresql_default_data_dir[ansible_os_family] is defined
+    else _postgresql_default_data_dir['default'] }}
 
 # Path for binaries
 _postgresql_bin_path:
@@ -93,9 +93,9 @@ _postgresql_bin_path:
   Debian: "/usr/lib/postgresql/{{ postgresql_dist_version }}/bin"
 
 postgresql_bin_path: >-
-  {{   _postgresql_bin_path[ansible_os_family]
-  if   _postgresql_bin_path[ansible_os_family] is defined
-  else _postgresql_bin_path['default'] }}
+  {{ _postgresql_bin_path[ansible_os_family]
+    if _postgresql_bin_path[ansible_os_family] is defined
+    else _postgresql_bin_path['default'] }}
 
 # Path for configuration files
 _postgresql_config_path:
@@ -103,9 +103,9 @@ _postgresql_config_path:
   Debian: "/etc/postgresql/{{ postgresql_dist_version }}/main"
 
 postgresql_config_path: >-
-  {{   _postgresql_config_path[ansible_os_family]
-  if   _postgresql_config_path[ansible_os_family] is defined
-  else _postgresql_config_path['default'] }}
+  {{ _postgresql_config_path[ansible_os_family]
+    if _postgresql_config_path[ansible_os_family] is defined
+    else _postgresql_config_path['default'] }}
 
 # Default socket
 _postgres_default_unix_socket_directory:
@@ -113,6 +113,6 @@ _postgres_default_unix_socket_directory:
   Alpine: "/run/postgresql"
 
 postgres_default_unix_socket_directory: >-
-  {{   _postgres_default_unix_socket_directory[ansible_os_family]
-  if   _postgres_default_unix_socket_directory[ansible_os_family] is defined
-  else _postgres_default_unix_socket_directory['default'] }}
+  {{ _postgres_default_unix_socket_directory[ansible_os_family]
+    if _postgres_default_unix_socket_directory[ansible_os_family] is defined
+    else _postgres_default_unix_socket_directory['default'] }}

@@ -1,14 +1,14 @@
 ---
-# role: ansible-role-postgresql
+# role: jomrr.postgresql
 # file: handlers/main.yml
 
-- name: reload systemd
-  systemd:
+- name: "Reload systemd"
+  ansible.builtin.systemd:
     daemon_reload: true
   when: ansible_service_mgr == 'systemd'
 
-- name: restart postgresql
-  service:
+- name: "Restart postgresql"
+  ansible.builtin.service:
     name: "{{ postgresql_daemon }}"
     state: restarted
     enabled: true

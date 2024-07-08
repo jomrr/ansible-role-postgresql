@@ -1,9 +1,10 @@
----
-# role: ansible-role-postgresql
+# role: jomrr.postgresql
 # file: molecule/resources/playbooks/converge.yml
+# code: language=ansible-jinja
 
-- name: Converge
+- name: "PLAYBOOK | Converge | postgresql"
   hosts: all
   become: true
+  gather_facts: true
   roles:
-    - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"
+    - role: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}"

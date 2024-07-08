@@ -1,132 +1,33 @@
 ---
-# role: ansible-role-postgresql
+# role: jomrr.postgresql
 # file: molecule/default/molecule.yml
 
+scenario:
+  name: default
 dependency:
   name: galaxy
-  options:
-    requirements-file: requirements.yml
+  requirements-file: meta/requirements.yml
 driver:
-  name: docker
-lint: |
-  set -e
-  yamllint .
-  ansible-lint
-platforms:
-  - name: alpine-postgresql
-    image: "jomrr/molecule-alpine:latest"
-    command: ""
-    pre_build_image: true
-    privileged: true
-    tmpfs:
-      - /tmp
-      - /run
-  - name: arch-postgresql
-    image: "jomrr/molecule-archlinux:latest"
-    command: ""
-    pre_build_image: true
-    privileged: true
-    tmpfs:
-      - /tmp
-      - /run
-  - name: centos-postgresql
-    image: "jomrr/molecule-centos:latest"
-    command: ""
-    pre_build_image: true
-    privileged: true
-    tmpfs:
-      - /tmp
-      - /run
-  - name: debian-postgresql
-    image: "jomrr/molecule-debian:latest"
-    command: ""
-    pre_build_image: true
-    privileged: true
-    tmpfs:
-      - /tmp
-      - /run
-  - name: fedora-postgresql
-    image: "jomrr/molecule-fedora:latest"
-    command: ""
-    pre_build_image: true
-    privileged: true
-    tmpfs:
-      - /tmp
-      - /run
-  - name: opensuse-postgresql
-    image: "jomrr/molecule-opensuse:15"
-    command: ""
-    pre_build_image: true
-    privileged: true
-    tmpfs:
-      - /tmp
-      - /run
-  - name: tumbleweed-postgresql
-    image: "jomrr/molecule-opensuse:tumbleweed"
-    command: ""
-    pre_build_image: true
-    privileged: true
-    tmpfs:
-      - /tmp
-      - /run
-  - name: oracle-postgresql
-    image: "jomrr/molecule-oraclelinux:latest"
-    command: ""
-    pre_build_image: true
-    privileged: true
-    tmpfs:
-      - /tmp
-      - /run
-  - name: ubuntu-postgresql
-    image: "jomrr/molecule-ubuntu:latest"
-    command: ""
-    pre_build_image: true
-    privileged: true
-    tmpfs:
-      - /tmp
-      - /run
+  name: podman
+lint: set -e; ansible-lint
 provisioner:
   name: ansible
+  config_options:
+    defaults:
+      interpreter_python: auto_silent
+      callback_whitelist: profile_tasks, timer, yaml
+    ssh_connection:
+      pipelining: true
   log: true
   playbooks:
     converge: ../resources/playbooks/converge.yml
     verify: ../resources/playbooks/verify.yml
-  inventory:
-    group_vars:
-      all:
-        postgresql_role_enabled: true
-        postgresql_no_log: false
-        postgresql_users:
-          - name: myuser
-            password: 'SuperS3cret+'
-        postgresql_databases:
-          - name: mydb
-            owner: myuser
-    host_vars:
-      arch-postgresql:
-        postgresql_conf:
-          - key: listen_addresses
-            value: "{{ postgresql_listen_addresses | join(',') }}"
-          - key: port
-            value: "{{ postgresql_port }}"
-            state: present
-          - key: unix_socket_directories
-            value: "{{ postgresql_unix_socket_directories | join(',') }}"
-          - key: password_encryption
-            value: 'scram-sha-256'
-          - key: timezone
-            value: 'Europe/Berlin'
-          - key: log_timezone
-            value: 'Europe/Berlin'
-          - key: datestyle
-            value: 'iso, ymd'
-          - key: default_text_search_config
-            value: 'pg_catalog.english'
-          - key: include_dir
-            value: conf.d
-        postgresql_hba:
-          - { type: local, database: all, user: postgres, auth_method: peer }
-          - { type: local, database: all, user: all, auth_method: scram-sha-256 }
-          - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: scram-sha-256 }
 verifier:
   name: ansible
+platforms:
+  - name: postgresql
+    image: docker.io/${uns:-jomrr}/molecule-${img:-fedora}:${tag:-latest}
+    pre_build_image: true
+    entrypoint: null
+    command: null
+    systemd: true

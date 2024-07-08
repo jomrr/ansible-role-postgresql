@@ -1,5 +1,5 @@
 ---
-# role: ansible-role-postgresql
+# role: jomrr.postgresql
 # file: tasks/main.yml
 
 - name: "Postgresql | Install packages"

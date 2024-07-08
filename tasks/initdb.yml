@@ -1,5 +1,5 @@
 ---
-# role: ansible-role-postgresql
+# role: jomrr.postgresql
 # file: tasks/initdb.yml
 
 - name: "Postgresql | Create data_dir"

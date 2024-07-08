@@ -1,5 +1,5 @@
 ---
-# role: ansible-role-postgresql
+# role: jomrr.postgresql
 # file: tasks/config.yml
 
 # - name: "Postgresql | Check for capabilites in default config"
@@ -17,8 +17,8 @@
   tags:
     - postgresql:config
   notify:
-    - reload systemd
-    - restart postgresql
+    - "Reload systemd"
+    - "Restart postgresql"
 
 # Tried using the postgresql_pg_hba module, but it creates strange defaults.
 - name: "Postgresql | Configure hostbased authentication (pg_hba.conf)"
@@ -30,7 +30,7 @@
     mode: '0600'
   tags:
     - postgresql:config
-  notify: restart postgresql
+  notify: "Restart postgresql"
   when: postgresql_hba | length > 0
 
 - name: "Postgresql | Ensure include_dir exists if configured"
