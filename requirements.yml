@@ -2,4 +2,7 @@
 # role: jomrr.postgresql
 # file: meta/requirements.yml
 
-- name: community.general
+collections:
+  - {'name': 'community.general'}
+
+roles: []
