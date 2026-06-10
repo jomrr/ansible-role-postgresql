@@ -73,11 +73,11 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install Ansible Galaxy requirements
+      - name: Install required Ansible Collections
         run: |
           set -euo pipefail
-          if [ -f requirements.yml ]; then
-            uvx --from ansible-core ansible-galaxy install -fr requirements.yml
+          if [ -f collections.yml ]; then
+            uvx --from ansible-core ansible-galaxy install -fr collections.yml
           fi
 
       - name: Show Podman environment
