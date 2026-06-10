@@ -39,6 +39,13 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Install Ansible Galaxy requirements
+        run: |
+          set -euo pipefail
+          if [ -f requirements.yml ]; then
+            uvx --from ansible-core ansible-galaxy install -fr requirements.yml
+          fi
+
       - name: Show Podman environment
         run: |
           set -euo pipefail
