@@ -1,0 +1,47 @@
+---
+# role: postgresql
+# file: tasks/assert.yml
+
+- name: "PostgreSQL | Assert platform variables are available"
+  ansible.builtin.assert:
+    that:
+      - __postgresql_packages is defined
+      - __postgresql_service_name is defined
+      - __postgresql_user is defined
+      - __postgresql_group is defined
+      - __postgresql_cluster_provider is defined
+      - __postgresql_cluster_provider in ['postgresql_common', 'postgresql_setup', 'initdb']
+    fail_msg: "No complete PostgreSQL platform variables found for OS family {{ ansible_facts['os_family'] }}."
+  tags:
+    - postgresql_vars
+    - postgresql_validate
+
+- name: "PostgreSQL | Assert object state values are supported"
+  ansible.builtin.assert:
+    that:
+      - _postgresql_invalid_object_states | length == 0
+    fail_msg: >-
+      PostgreSQL runtime object state values must be either present or absent when defined.
+      Global teardown, purge, or dependency-aware cleanup is not part of the role contract.
+  vars:
+    _postgresql_runtime_objects: >-
+      {{
+        postgresql_roles
+        + postgresql_memberships
+        + postgresql_tablespaces
+        + postgresql_databases
+        + postgresql_extensions
+        + postgresql_publications
+        + postgresql_subscriptions
+      }}
+    _postgresql_invalid_object_states: >-
+      {{
+        _postgresql_runtime_objects
+        | selectattr('state', 'defined')
+        | rejectattr('state', 'equalto', 'present')
+        | rejectattr('state', 'equalto', 'absent')
+        | list
+      }}
+  tags:
+    - postgresql_validate
+    - postgresql_objects

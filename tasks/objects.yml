@@ -1,0 +1,208 @@
+---
+# role: postgresql
+# file: tasks/objects.yml
+
+- name: "PostgreSQL | Manage roles"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  community.postgresql.postgresql_user:
+    name: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+    login_db: "{{ item.login_db | default(omit) }}"
+    password: "{{ item.password | default(omit) }}"
+    encrypted: "{{ item.encrypted | default(omit) }}"
+    role_attr_flags: "{{ item.role_attr_flags | default(omit) }}"
+    conn_limit: "{{ item.conn_limit | default(omit) }}"
+    expires: "{{ item.expires | default(omit) }}"
+    comment: "{{ item.comment | default(omit) }}"
+    configuration: "{{ item.configuration | default(omit) }}"
+    reset_unspecified_configuration: "{{ item.reset_unspecified_configuration | default(omit) }}"
+    fail_on_user: "{{ item.fail_on_user | default(omit) }}"
+    no_password_changes: "{{ item.no_password_changes | default(omit) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(omit) }}"
+    login_port: "{{ item.login_port | default(postgresql_port) }}"
+    login_user: "{{ item.login_user | default(omit) }}"
+    login_password: "{{ item.login_password | default(omit) }}"
+    login_host: "{{ item.login_host | default(omit) }}"
+    ssl_mode: "{{ item.ssl_mode | default(omit) }}"
+    trust_input: false
+  loop: "{{ postgresql_roles }}"
+  when: postgresql_roles | length > 0
+  tags:
+    - postgresql_roles
+    - postgresql_objects
+
+- name: "PostgreSQL | Manage role memberships"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  community.postgresql.postgresql_membership:
+    groups: "{{ item.groups | default(item.group | default(omit)) }}"
+    target_roles: "{{ item.target_roles }}"
+    state: "{{ item.state | default('present') }}"
+    fail_on_role: "{{ item.fail_on_role | default(omit) }}"
+    login_db: "{{ item.login_db | default(omit) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(omit) }}"
+    login_port: "{{ item.login_port | default(postgresql_port) }}"
+    login_user: "{{ item.login_user | default(omit) }}"
+    login_password: "{{ item.login_password | default(omit) }}"
+    login_host: "{{ item.login_host | default(omit) }}"
+    ssl_mode: "{{ item.ssl_mode | default(omit) }}"
+    trust_input: false
+  loop: "{{ postgresql_memberships }}"
+  when: postgresql_memberships | length > 0
+  tags:
+    - postgresql_memberships
+    - postgresql_objects
+
+- name: "PostgreSQL | Ensure tablespace directories exist"
+  ansible.builtin.file:
+    path: "{{ item.location }}"
+    state: directory
+    owner: "{{ item.directory_owner | default(__postgresql_user) }}"
+    group: "{{ item.directory_group | default(__postgresql_group) }}"
+    mode: "{{ item.directory_mode | default('0700') }}"
+  loop: "{{ postgresql_tablespaces }}"
+  when:
+    - item.location is defined
+    - item.state | default('present') != 'absent'
+  tags:
+    - postgresql_tablespaces
+    - postgresql_objects
+
+- name: "PostgreSQL | Manage tablespaces"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  community.postgresql.postgresql_tablespace:
+    tablespace: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+    location: "{{ item.location | default(omit) }}"
+    owner: "{{ item.owner | default(omit) }}"
+    set: "{{ item.set | default(omit) }}"
+    login_db: "{{ item.login_db | default(omit) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(omit) }}"
+    login_port: "{{ item.login_port | default(postgresql_port) }}"
+    login_user: "{{ item.login_user | default(omit) }}"
+    login_password: "{{ item.login_password | default(omit) }}"
+    login_host: "{{ item.login_host | default(omit) }}"
+    ssl_mode: "{{ item.ssl_mode | default(omit) }}"
+    trust_input: false
+  loop: "{{ postgresql_tablespaces }}"
+  when: postgresql_tablespaces | length > 0
+  tags:
+    - postgresql_tablespaces
+    - postgresql_objects
+
+- name: "PostgreSQL | Manage databases"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+    owner: "{{ item.owner | default(omit) }}"
+    encoding: "{{ item.encoding | default(omit) }}"
+    lc_collate: "{{ item.lc_collate | default(omit) }}"
+    lc_ctype: "{{ item.lc_ctype | default(omit) }}"
+    locale_provider: "{{ item.locale_provider | default(omit) }}"
+    icu_locale: "{{ item.icu_locale | default(omit) }}"
+    template: "{{ item.template | default(omit) }}"
+    tablespace: "{{ item.tablespace | default(omit) }}"
+    conn_limit: "{{ item.conn_limit | default(omit) }}"
+    comment: "{{ item.comment | default(omit) }}"
+    force: "{{ item.force | default(omit) }}"
+    maintenance_db: "{{ item.maintenance_db | default(omit) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(omit) }}"
+    login_port: "{{ item.login_port | default(postgresql_port) }}"
+    login_user: "{{ item.login_user | default(omit) }}"
+    login_password: "{{ item.login_password | default(omit) }}"
+    login_host: "{{ item.login_host | default(omit) }}"
+    ssl_mode: "{{ item.ssl_mode | default(omit) }}"
+    trust_input: false
+  loop: "{{ postgresql_databases }}"
+  when: postgresql_databases | length > 0
+  tags:
+    - postgresql_databases
+    - postgresql_objects
+
+- name: "PostgreSQL | Manage extensions"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  community.postgresql.postgresql_ext:
+    name: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+    login_db: "{{ item.database }}"
+    schema: "{{ item.schema | default(omit) }}"
+    version: "{{ item.version | default(omit) }}"
+    cascade: "{{ item.cascade | default(omit) }}"
+    comment: "{{ item.comment | default(omit) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(omit) }}"
+    login_port: "{{ item.login_port | default(postgresql_port) }}"
+    login_user: "{{ item.login_user | default(omit) }}"
+    login_password: "{{ item.login_password | default(omit) }}"
+    login_host: "{{ item.login_host | default(omit) }}"
+    ssl_mode: "{{ item.ssl_mode | default(omit) }}"
+    trust_input: false
+  loop: "{{ postgresql_extensions }}"
+  when: postgresql_extensions | length > 0
+  tags:
+    - postgresql_extensions
+    - postgresql_objects
+
+- name: "PostgreSQL | Manage logical replication publications"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  community.postgresql.postgresql_publication:
+    name: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+    login_db: "{{ item.database }}"
+    owner: "{{ item.owner | default(omit) }}"
+    tables: "{{ item.tables | default(omit) }}"
+    tables_in_schema: "{{ item.tables_in_schema | default(omit) }}"
+    columns: "{{ item.columns | default(omit) }}"
+    rowfilters: "{{ item.rowfilters | default(omit) }}"
+    parameters: "{{ item.parameters | default(omit) }}"
+    comment: "{{ item.comment | default(omit) }}"
+    cascade: "{{ item.cascade | default(omit) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(omit) }}"
+    login_port: "{{ item.login_port | default(postgresql_port) }}"
+    login_user: "{{ item.login_user | default(omit) }}"
+    login_password: "{{ item.login_password | default(omit) }}"
+    login_host: "{{ item.login_host | default(omit) }}"
+    ssl_mode: "{{ item.ssl_mode | default(omit) }}"
+    trust_input: false
+  loop: "{{ postgresql_publications }}"
+  when: postgresql_publications | length > 0
+  tags:
+    - postgresql_publications
+    - postgresql_objects
+
+- name: "PostgreSQL | Manage logical replication subscriptions"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  community.postgresql.postgresql_subscription:
+    name: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+    login_db: "{{ item.database }}"
+    connparams: "{{ item.connparams | default(omit) }}"
+    publications: "{{ item.publications | default(omit) }}"
+    owner: "{{ item.owner | default(omit) }}"
+    subsparams: "{{ item.subsparams | default(omit) }}"
+    cascade: "{{ item.cascade | default(omit) }}"
+    login_unix_socket: "{{ item.login_unix_socket | default(omit) }}"
+    login_port: "{{ item.login_port | default(postgresql_port) }}"
+    login_user: "{{ item.login_user | default(omit) }}"
+    login_password: "{{ item.login_password | default(omit) }}"
+    login_host: "{{ item.login_host | default(omit) }}"
+    ssl_mode: "{{ item.ssl_mode | default(omit) }}"
+    trust_input: false
+  loop: "{{ postgresql_subscriptions }}"
+  when: postgresql_subscriptions | length > 0
+  tags:
+    - postgresql_subscriptions
+    - postgresql_objects

@@ -1,19 +1,21 @@
-# {{ template_destpath }}
-# vi: set ft=shell noai sw=4 tw=4 ts=4 et:
 {{ ansible_managed | comment }}
-#
-# ===================================================
-# PostgreSQL entry Authentication Configuration File
-# ===================================================
-#
-# This file controls: which hosts are allowed to connect, how entrys
-# are authenticated, which PostgreSQL user names they can use, which
-# databases they can access.  Records take one of these forms:
-#
-# Refer to https://www.postgresql.org/docs/current/static/auth-pg-hba-conf.html
-#
-# TYPE  DATABASE        USER            ADDRESS                 METHOD
-#
-{% for entry in postgresql_hba %}
-{{ entry.type }} {{ entry.database }} {{ entry.user }} {{ entry.address | default('') }} {{ entry.ip_address | default('') }} {{ entry.ip_mask | default('') }} {{ entry.auth_method }} {{ entry.auth_options | default('') }}
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD          OPTIONS
+{% for entry in postgresql_hba_entries %}
+{% set _postgresql_hba_options = entry.options | default([]) %}
+{% if _postgresql_hba_options is string %}
+{% set _postgresql_hba_options_text = _postgresql_hba_options %}
+{% else %}
+{% set _postgresql_hba_options_text = _postgresql_hba_options | join(' ') %}
+{% endif %}
+{% set _postgresql_hba_fields = [entry.type, entry.database, entry.user] %}
+{% if entry.address is defined %}
+{% set _postgresql_hba_fields = _postgresql_hba_fields + [entry.address] %}
+{% endif %}
+{% set _postgresql_hba_fields = _postgresql_hba_fields + [entry.method] %}
+{% if _postgresql_hba_options_text | length > 0 %}
+{% set _postgresql_hba_fields = _postgresql_hba_fields + [_postgresql_hba_options_text] %}
+{% endif %}
+{% set _postgresql_hba_comment = (' # ' ~ entry.comment) if entry.comment is defined else '' %}
+{{ _postgresql_hba_fields | join(' ') }}{{ _postgresql_hba_comment }}
 {% endfor %}

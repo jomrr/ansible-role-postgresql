@@ -1,0 +1,31 @@
+---
+# role: postgresql
+# file: tasks/pg_hba.yml
+
+- name: "PostgreSQL | Validate pg_hba entries"
+  ansible.builtin.assert:
+    that:
+      - item.type is defined
+      - item.type in ['local', 'host', 'hostssl', 'hostnossl']
+      - item.database is defined
+      - item.user is defined
+      - item.method is defined
+      - item.type == 'local' or item.address is defined
+      - item.type != 'local' or item.address is not defined
+    fail_msg: "Invalid pg_hba entry: {{ item }}"
+  loop: "{{ postgresql_hba_entries }}"
+  tags:
+    - postgresql_pg_hba
+
+- name: "PostgreSQL | Configure pg_hba.conf"
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: "{{ __postgresql_config_dir }}/pg_hba.conf"
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0640"
+  notify:
+    - Validate postgresql configuration
+    - Reload postgresql
+  tags:
+    - postgresql_pg_hba

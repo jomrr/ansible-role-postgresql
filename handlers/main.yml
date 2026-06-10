@@ -1,14 +1,30 @@
 ---
-# role: jomrr.postgresql
+# role: postgresql
 # file: handlers/main.yml
 
-- name: "Reload systemd"
-  ansible.builtin.systemd:
-    daemon_reload: true
-  when: ansible_service_mgr == 'systemd'
+- name: "Validate postgresql configuration"
+  ansible.builtin.command:
+    cmd: >-
+      {{ __postgresql_bin_dir }}/postgres
+      -D {{ __postgresql_data_dir }}
+      -C config_file
+      -c config_file={{ __postgresql_config_dir }}/postgresql.conf
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  changed_when: false
+  tags:
+    - postgresql_validate
+
+- name: "Reload postgresql"
+  ansible.builtin.service:
+    name: "{{ __postgresql_service_name }}"
+    state: reloaded
+  tags:
+    - postgresql_service
 
 - name: "Restart postgresql"
   ansible.builtin.service:
-    name: "{{ postgresql_daemon }}"
+    name: "{{ __postgresql_service_name }}"
     state: restarted
-    enabled: true
+  tags:
+    - postgresql_service

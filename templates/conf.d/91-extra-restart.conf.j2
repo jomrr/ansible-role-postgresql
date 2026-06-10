@@ -1,0 +1,9 @@
+{{ ansible_managed | comment }}
+
+################################################################################
+# Additional restart-required settings
+################################################################################
+
+{% for item in postgresql_config_extra_restart %}
+{{ item.name }} = {% if item.quote | default(true) | bool %}'{{ item.value }}'{% else %}{{ item.value }}{% endif %}
+{% endfor %}

@@ -1,0 +1,27 @@
+---
+# role: postgresql
+# file: tasks/pg_ident.yml
+
+- name: "PostgreSQL | Validate pg_ident entries"
+  ansible.builtin.assert:
+    that:
+      - item.map is defined
+      - item.system_user is defined
+      - item.database_user is defined
+    fail_msg: "Invalid pg_ident entry: {{ item }}"
+  loop: "{{ postgresql_pg_ident_entries }}"
+  tags:
+    - postgresql_pg_ident
+
+- name: "PostgreSQL | Configure pg_ident.conf"
+  ansible.builtin.template:
+    src: pg_ident.conf.j2
+    dest: "{{ __postgresql_config_dir }}/pg_ident.conf"
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0640"
+  notify:
+    - Validate postgresql configuration
+    - Reload postgresql
+  tags:
+    - postgresql_pg_ident

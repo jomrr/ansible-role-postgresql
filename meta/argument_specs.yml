@@ -1,0 +1,463 @@
+---
+# role: postgresql
+# file: meta/argument_specs.yml
+
+argument_specs:
+  main:
+    short_description: Install and manage PostgreSQL.
+    description:
+      - Installs, configures, and manages PostgreSQL runtime state.
+      - Manages authentication files and declared runtime objects without global teardown,
+        purge, or cleanup behavior.
+      - Per-object state=absent is passed to supported community.postgresql modules when
+        declared for an individual object.
+    options:
+      postgresql_no_log:
+        type: bool
+        required: false
+        default: true
+        description:
+          - Suppress logging for PostgreSQL object tasks that may contain credentials.
+      postgresql_listen_addresses:
+        type: list
+        elements: str
+        required: false
+        default:
+          - 127.0.0.1
+        description:
+          - PostgreSQL listen_addresses values.
+      postgresql_port:
+        type: int
+        required: false
+        default: 5432
+        description:
+          - PostgreSQL TCP port.
+      postgresql_max_connections:
+        type: int
+        required: false
+        default: 50
+        description:
+          - Maximum concurrent PostgreSQL connections.
+      postgresql_superuser_reserved_connections:
+        type: int
+        required: false
+        default: 3
+        description:
+          - Connections reserved for PostgreSQL superusers.
+      postgresql_shared_buffers:
+        type: str
+        required: false
+        default: 2GB
+        description:
+          - Shared buffer size optimized for an 8 GB VM default profile.
+      postgresql_effective_cache_size:
+        type: str
+        required: false
+        default: 6GB
+        description:
+          - Planner cache estimate optimized for an 8 GB VM default profile.
+      postgresql_work_mem:
+        type: str
+        required: false
+        default: 16MB
+        description:
+          - Per operation work memory.
+      postgresql_hash_mem_multiplier:
+        type: str
+        required: false
+        default: '2.0'
+        description:
+          - Hash memory multiplier.
+      postgresql_maintenance_work_mem:
+        type: str
+        required: false
+        default: 512MB
+        description:
+          - Maintenance work memory.
+      postgresql_autovacuum_work_mem:
+        type: str
+        required: false
+        default: 128MB
+        description:
+          - Autovacuum worker memory.
+      postgresql_temp_buffers:
+        type: str
+        required: false
+        default: 16MB
+        description:
+          - Temporary buffer size per session.
+      postgresql_temp_file_limit:
+        type: str
+        required: false
+        default: 2GB
+        description:
+          - Maximum temporary file size per process.
+      postgresql_max_worker_processes:
+        type: int
+        required: false
+        default: 8
+        description:
+          - Maximum background worker processes.
+      postgresql_max_parallel_workers:
+        type: int
+        required: false
+        default: 4
+        description:
+          - Maximum parallel workers.
+      postgresql_max_parallel_workers_per_gather:
+        type: int
+        required: false
+        default: 2
+        description:
+          - Maximum parallel workers per gather node.
+      postgresql_max_parallel_maintenance_workers:
+        type: int
+        required: false
+        default: 2
+        description:
+          - Maximum parallel maintenance workers.
+      postgresql_wal_level:
+        type: str
+        required: false
+        default: replica
+        choices:
+          - minimal
+          - replica
+          - logical
+        description:
+          - PostgreSQL WAL level. Use logical for logical replication publishers/subscribers.
+      postgresql_max_wal_senders:
+        type: int
+        required: false
+        default: 4
+        description:
+          - Maximum concurrent WAL sender processes.
+      postgresql_max_replication_slots:
+        type: int
+        required: false
+        default: 4
+        description:
+          - Maximum replication slots.
+      postgresql_max_logical_replication_workers:
+        type: int
+        required: false
+        default: 4
+        description:
+          - Maximum logical replication workers.
+      postgresql_max_sync_workers_per_subscription:
+        type: int
+        required: false
+        default: 2
+        description:
+          - Maximum sync workers per subscription.
+      postgresql_fsync:
+        type: str
+        required: false
+        default: 'on'
+        choices:
+          - 'on'
+          - 'off'
+        description:
+          - Whether fsync is enabled.
+      postgresql_full_page_writes:
+        type: str
+        required: false
+        default: 'on'
+        choices:
+          - 'on'
+          - 'off'
+        description:
+          - Whether full page writes are enabled.
+      postgresql_synchronous_commit:
+        type: str
+        required: false
+        default: 'on'
+        description:
+          - Synchronous commit setting.
+      postgresql_wal_compression:
+        type: str
+        required: false
+        default: 'on'
+        description:
+          - WAL compression setting.
+      postgresql_checkpoint_timeout:
+        type: str
+        required: false
+        default: 15min
+        description:
+          - Checkpoint timeout.
+      postgresql_checkpoint_completion_target:
+        type: str
+        required: false
+        default: '0.9'
+        description:
+          - Checkpoint completion target.
+      postgresql_max_wal_size:
+        type: str
+        required: false
+        default: 4GB
+        description:
+          - Maximum WAL size before checkpoints.
+      postgresql_min_wal_size:
+        type: str
+        required: false
+        default: 512MB
+        description:
+          - Minimum WAL size.
+      postgresql_autovacuum:
+        type: str
+        required: false
+        default: 'on'
+        choices:
+          - 'on'
+          - 'off'
+        description:
+          - Whether autovacuum is enabled.
+      postgresql_autovacuum_max_workers:
+        type: int
+        required: false
+        default: 2
+        description:
+          - Maximum autovacuum workers.
+      postgresql_autovacuum_naptime:
+        type: str
+        required: false
+        default: 1min
+        description:
+          - Autovacuum naptime.
+      postgresql_autovacuum_vacuum_scale_factor:
+        type: str
+        required: false
+        default: '0.05'
+        description:
+          - Autovacuum vacuum scale factor.
+      postgresql_autovacuum_analyze_scale_factor:
+        type: str
+        required: false
+        default: '0.05'
+        description:
+          - Autovacuum analyze scale factor.
+      postgresql_autovacuum_vacuum_cost_delay:
+        type: str
+        required: false
+        default: 10ms
+        description:
+          - Autovacuum cost delay.
+      postgresql_autovacuum_vacuum_cost_limit:
+        type: int
+        required: false
+        default: 1000
+        description:
+          - Autovacuum cost limit.
+      postgresql_random_page_cost:
+        type: str
+        required: false
+        default: '1.5'
+        description:
+          - Planner random page cost for SSD-backed VM storage.
+      postgresql_effective_io_concurrency:
+        type: int
+        required: false
+        default: 32
+        description:
+          - Planner effective I/O concurrency.
+      postgresql_maintenance_io_concurrency:
+        type: int
+        required: false
+        default: 16
+        description:
+          - Maintenance I/O concurrency.
+      postgresql_timezone:
+        type: str
+        required: false
+        default: UTC
+        description:
+          - PostgreSQL timezone.
+      postgresql_log_timezone:
+        type: str
+        required: false
+        default: UTC
+        description:
+          - PostgreSQL log timezone.
+      postgresql_datestyle:
+        type: str
+        required: false
+        default: iso, ymd
+        description:
+          - PostgreSQL datestyle.
+      postgresql_lc_messages:
+        type: str
+        required: false
+        default: null
+        description:
+          - Locale used for PostgreSQL system error messages.
+      postgresql_lc_monetary:
+        type: str
+        required: false
+        default: null
+        description:
+          - Locale used for PostgreSQL monetary formatting.
+      postgresql_lc_numeric:
+        type: str
+        required: false
+        default: null
+        description:
+          - Locale used for PostgreSQL number formatting.
+      postgresql_lc_time:
+        type: str
+        required: false
+        default: null
+        description:
+          - Locale used for PostgreSQL date and time formatting.
+      postgresql_default_text_search_config:
+        type: str
+        required: false
+        default: pg_catalog.english
+        description:
+          - Default text search configuration.
+      postgresql_password_encryption:
+        type: str
+        required: false
+        default: scram-sha-256
+        description:
+          - Default password encryption method.
+      postgresql_log_destination:
+        type: str
+        required: false
+        default: stderr
+        description:
+          - PostgreSQL log destination.
+      postgresql_logging_collector:
+        type: str
+        required: false
+        default: 'off'
+        choices:
+          - 'on'
+          - 'off'
+        description:
+          - Whether PostgreSQL logging collector is enabled.
+      postgresql_log_statement:
+        type: str
+        required: false
+        default: none
+        description:
+          - PostgreSQL statement logging level.
+      postgresql_log_min_duration_statement:
+        type: int
+        required: false
+        default: 1000
+        description:
+          - Log statements running at least this many milliseconds.
+      postgresql_log_temp_files:
+        type: str
+        required: false
+        default: 64MB
+        description:
+          - Log temp files above this size.
+      postgresql_log_checkpoints:
+        type: str
+        required: false
+        default: 'on'
+        choices:
+          - 'on'
+          - 'off'
+        description:
+          - Whether checkpoint logging is enabled.
+      postgresql_log_autovacuum_min_duration:
+        type: str
+        required: false
+        default: 1min
+        description:
+          - Log autovacuum actions above this duration.
+      postgresql_config_extra_reload:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - Additional PostgreSQL settings expected to become effective after a reload.
+      postgresql_config_extra_restart:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - Additional PostgreSQL settings expected to require a PostgreSQL restart.
+      postgresql_pg_ident_entries:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - Entries rendered into the fully managed pg_ident.conf file.
+      postgresql_hba_entries:
+        type: list
+        elements: dict
+        required: false
+        default:
+          - type: local
+            database: all
+            user: postgres
+            method: peer
+          - type: local
+            database: all
+            user: all
+            method: peer
+          - type: host
+            database: all
+            user: all
+            address: 127.0.0.1/32
+            method: scram-sha-256
+        description:
+          - Entries rendered into the fully managed pg_hba.conf file.
+      postgresql_roles:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - PostgreSQL roles and login users managed through per-object state.
+      postgresql_memberships:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - PostgreSQL role memberships managed through per-object state.
+      postgresql_tablespaces:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - PostgreSQL tablespaces managed through per-object state.
+      postgresql_databases:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - PostgreSQL databases managed through per-object state.
+      postgresql_extensions:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - PostgreSQL extensions managed through per-object state in their target database.
+      postgresql_publications:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - Logical replication publications managed through per-object state in their source
+            database.
+      postgresql_subscriptions:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - Logical replication subscriptions managed through per-object state in their
+            local database.

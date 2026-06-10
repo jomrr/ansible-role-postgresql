@@ -1,14 +1,17 @@
 ---
-# name: jomrr.postgresql
+# role: postgresql
 # file: meta/main.yml
 
 galaxy_info:
+  author: Jonas Mauer
+  description: Ansible role for installing and managing PostgreSQL.
+  galaxy_tags:
+    - ansible
+    - role
+    - postgresql
+    - database
+  issue_tracker_url: https://github.com/jomrr/ansible-role-postgresql/issues
+  license: MIT
+  min_ansible_version: "2.20"
   namespace: jomrr
   role_name: postgresql
-  author: Jonas Mauer
-  company: none
-  description: Ansible role for setting up postgresql.
-  license: MIT
-  issue_tracker_url: https://github.com/jomrr/ansible-role-postgresql/issues
-  min_ansible_version: "2.17"
-  galaxy_tags: []

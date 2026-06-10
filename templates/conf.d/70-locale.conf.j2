@@ -1,0 +1,23 @@
+{{ ansible_managed | comment }}
+
+################################################################################
+# Locale, text search, and password defaults
+################################################################################
+
+timezone = '{{ postgresql_timezone }}'
+log_timezone = '{{ postgresql_log_timezone }}'
+datestyle = '{{ postgresql_datestyle }}'
+{% if postgresql_lc_messages is not none %}
+lc_messages = '{{ postgresql_lc_messages }}'
+{% endif %}
+{% if postgresql_lc_monetary is not none %}
+lc_monetary = '{{ postgresql_lc_monetary }}'
+{% endif %}
+{% if postgresql_lc_numeric is not none %}
+lc_numeric = '{{ postgresql_lc_numeric }}'
+{% endif %}
+{% if postgresql_lc_time is not none %}
+lc_time = '{{ postgresql_lc_time }}'
+{% endif %}
+default_text_search_config = '{{ postgresql_default_text_search_config }}'
+password_encryption = '{{ postgresql_password_encryption }}'

@@ -1,62 +1,55 @@
 ---
-# role: jomrr.postgresql
+# role: postgresql
 # file: tasks/config.yml
 
-# - name: "Postgresql | Check for capabilites in default config"
-#   command: "cat {{ postgresql_config_path }}/postgresql.conf"
-#   changed_when: false
-#   register: _postgresql_default_conf
-
-- name: "Postgresql | Configure global settings in postgresql.conf"
-  ansible.builtin.lineinfile:
-    dest: "{{ postgresql_config_path }}/postgresql.conf"
-    regexp: "^#?{{ item.key }}.+$"
-    line: "{{ item.key }} = '{{ item.value }}'"
-    state: "{{ item.state | default('present') }}"
-  loop: "{{ postgresql_conf }}"
-  tags:
-    - postgresql:config
-  notify:
-    - "Reload systemd"
-    - "Restart postgresql"
-
-# Tried using the postgresql_pg_hba module, but it creates strange defaults.
-- name: "Postgresql | Configure hostbased authentication (pg_hba.conf)"
-  ansible.builtin.template:
-    src: "pg_hba.conf.j2"
-    dest: "{{ postgresql_config_path }}/pg_hba.conf"
-    owner: "{{ postgresql_user }}"
-    group: "{{ postgresql_group }}"
-    mode: '0600'
-  tags:
-    - postgresql:config
-  notify: "Restart postgresql"
-  when: postgresql_hba | length > 0
-
-- name: "Postgresql | Ensure include_dir exists if configured"
+- name: "PostgreSQL | Ensure managed configuration directory exists"
   ansible.builtin.file:
-    path: "{{ postgresql_config_path }}/{{ item.value }}"
+    path: "{{ __postgresql_config_dir }}/conf.d"
     state: directory
-    owner: "{{ postgresql_user }}"
-    group: "{{ postgresql_group }}"
-    mode: '0700'
-  loop: "{{ postgresql_conf }}"
-  when: item.key == 'include_dir'
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0750"
   tags:
-    - postgresql:config
+    - postgresql_config
 
-# - name: "Postgresql | Set permissions on unix_socket_directories"
-#   ansible.builtin.file:
-#     path: "{{ item }}"
-#     state: directory
-#     owner: "{{ postgresql_user }}"
-#     group: "{{ postgresql_group }}"
-#     mode: "{{ postgresql_unix_socket_directories_mode }}"
-#   loop: "{{ postgresql_unix_socket_directories }}"
-#   tags:
-#     - postgresql:config
-
-- name: "Postgresql | Flush handlers"
-  ansible.builtin.meta: flush_handlers
+- name: "PostgreSQL | Ensure PostgreSQL includes managed configuration directory"
+  ansible.builtin.lineinfile:
+    path: "{{ __postgresql_config_dir }}/postgresql.conf"
+    regexp: '^#?include_dir\s*=.*$'
+    line: "include_dir = 'conf.d'"
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0600"
+  notify:
+    - Validate postgresql configuration
+    - Reload postgresql
   tags:
-    - postgresql:config
+    - postgresql_config
+
+- name: "PostgreSQL | Configure restart-scoped settings"
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ __postgresql_config_dir }}/conf.d/{{ item.dest }}"
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0600"
+  loop: "{{ __postgresql_config_restart_templates }}"
+  notify:
+    - Validate postgresql configuration
+    - Restart postgresql
+  tags:
+    - postgresql_config
+
+- name: "PostgreSQL | Configure reload-scoped settings"
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ __postgresql_config_dir }}/conf.d/{{ item.dest }}"
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0600"
+  loop: "{{ __postgresql_config_reload_templates }}"
+  notify:
+    - Validate postgresql configuration
+    - Reload postgresql
+  tags:
+    - postgresql_config

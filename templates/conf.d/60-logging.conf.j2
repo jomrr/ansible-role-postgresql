@@ -1,0 +1,13 @@
+{{ ansible_managed | comment }}
+
+################################################################################
+# Logging
+################################################################################
+
+log_destination = '{{ postgresql_log_destination }}'
+logging_collector = {{ postgresql_logging_collector }}
+log_statement = '{{ postgresql_log_statement }}'
+log_min_duration_statement = {{ postgresql_log_min_duration_statement }}
+log_temp_files = '{{ postgresql_log_temp_files }}'
+log_checkpoints = {{ postgresql_log_checkpoints }}
+log_autovacuum_min_duration = '{{ postgresql_log_autovacuum_min_duration }}'

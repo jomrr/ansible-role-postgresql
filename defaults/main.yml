@@ -1,117 +1,348 @@
 ---
-# role: jomrr.postgresql
+# role: postgresql
 # file: defaults/main.yml
 
-# The role is disabled by default, so you do not get in trouble.
-# Checked in tasks/main.yml which includes tasks/tasks.yml if enabled.
-postgresql_role_enabled: false
+################################################################################
+# Role behavior
+################################################################################
 
-# Prevent logging of sensitive information in postgres modules.
-# Turn to false for debugging purposes.
+# Suppress logs for PostgreSQL object tasks that may process credentials.
 postgresql_no_log: true
 
-# The addresses to bind to.
-postgresql_listen_addresses:
-  - 127.0.0.1
+################################################################################
+# Network runtime
+################################################################################
 
-# The listening port.
+# Addresses PostgreSQL should listen on.
+postgresql_listen_addresses:
+  - "127.0.0.1"
+
+# TCP port used by PostgreSQL and local management connections.
 postgresql_port: 5432
 
-# Change here to use a non-default location for the data dir.
-postgresql_data_dir: "{{ postgresql_default_data_dir }}"
+################################################################################
+# Connection limits
+################################################################################
 
-# Usually the default one.
-postgresql_unix_socket_directories:
-  - "{{ postgres_default_unix_socket_directory }}"
+# Maximum number of concurrent PostgreSQL connections.
+postgresql_max_connections: 50
 
-# This allows local users to authenticate via socket.
-# Set to something more restrictive if you do not need that.
-# Owner and group are postgres.
-postgresql_unix_socket_directories_mode: '02775'
+# Connections reserved for PostgreSQL superusers.
+postgresql_superuser_reserved_connections: 3
 
-# Global configuration options that will be set in postgresql.conf.
-# Alter the distribution configuration file via lineinfile.
-# You can also set state: present|absent.
-# ATTENTION:
-# Change password_encryption to e.g. to scram-sha-256 with versions >= 10.
-# The value 'on' is for Amazon Linux compatibility only and defaults to md5
-# also in the current versions of postgresql.
-postgresql_conf:
-  - key: listen_addresses
-    value: "{{ postgresql_listen_addresses | join(',') }}"
-  - key: port
-    value: "{{ postgresql_port }}"
-    state: present
-  - key: unix_socket_directories
-    value: "{{ postgresql_unix_socket_directories | join(',') }}"
-  - key: password_encryption
-    value: 'on'
-  - key: timezone
-    value: 'UTC'
-  - key: log_timezone
-    value: 'UTC'
-  - key: datestyle
-    value: 'iso, ymd'
-  - key: default_text_search_config
-    value: 'pg_catalog.english'
+################################################################################
+# Memory tuning
+################################################################################
 
-# Entries for pg_hba.conf (host based authentication).
-# Change on versions >=10 and e.g. use scram-sha-256 instead of ident:
-#  - { type: local, database: all, user: postgres, auth_method: peer }
-#  - { type: local, database: all, user: all, auth_method: scram-sha-256 }
-#  - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: scram-sha256 }
-# POSSIBLE KEYS:
-# type, database, user, address, ip_address, ip_mask, auth_method, auth_options
-postgresql_hba:
-  - { type: local, database: all, user: all, auth_method: peer }
-  - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: scram-sha-256 }
+# Shared buffer size tuned for a small dedicated 8 GB VM profile.
+postgresql_shared_buffers: "2GB"
 
-# Databases.
-# see: https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_db_module.html
+# Planner cache estimate tuned for a small dedicated 8 GB VM profile.
+postgresql_effective_cache_size: "6GB"
+
+# Per-operation memory limit for sorts and hash operations.
+postgresql_work_mem: "16MB"
+
+# Multiplier for hash operation memory relative to work_mem.
+postgresql_hash_mem_multiplier: "2.0"
+
+# Memory limit for maintenance operations such as VACUUM and CREATE INDEX.
+postgresql_maintenance_work_mem: "512MB"
+
+# Memory limit used by each autovacuum worker.
+postgresql_autovacuum_work_mem: "128MB"
+
+# Temporary buffer size available per database session.
+postgresql_temp_buffers: "16MB"
+
+# Maximum temporary file usage allowed per process.
+postgresql_temp_file_limit: "2GB"
+
+################################################################################
+# CPU / parallelism tuning
+################################################################################
+
+# Maximum number of background worker processes.
+postgresql_max_worker_processes: 8
+
+# Maximum number of workers available for parallel queries.
+postgresql_max_parallel_workers: 4
+
+# Maximum parallel workers usable by a single gather node.
+postgresql_max_parallel_workers_per_gather: 2
+
+# Maximum parallel workers usable by maintenance operations.
+postgresql_max_parallel_maintenance_workers: 2
+
+################################################################################
+# WAL / replication / checkpoint tuning
+################################################################################
+
+# WAL level used by PostgreSQL; set to logical when logical replication is required.
+postgresql_wal_level: replica
+
+# Maximum number of concurrent WAL sender processes.
+postgresql_max_wal_senders: 4
+
+# Maximum number of replication slots.
+postgresql_max_replication_slots: 4
+
+# Maximum number of logical replication worker processes.
+postgresql_max_logical_replication_workers: 4
+
+# Maximum table synchronization workers per subscription.
+postgresql_max_sync_workers_per_subscription: 2
+
+# Keep fsync enabled to preserve durability across crashes.
+postgresql_fsync: "on"
+
+# Keep full-page writes enabled to preserve crash recovery safety.
+postgresql_full_page_writes: "on"
+
+# Commit durability mode used by PostgreSQL transactions.
+postgresql_synchronous_commit: "on"
+
+# Compress WAL records to reduce write volume on disk-backed storage.
+postgresql_wal_compression: "on"
+
+# Time interval between automatic checkpoints.
+postgresql_checkpoint_timeout: "15min"
+
+# Fraction of checkpoint interval used to spread checkpoint I/O.
+postgresql_checkpoint_completion_target: "0.9"
+
+# WAL size threshold before PostgreSQL requests a checkpoint.
+postgresql_max_wal_size: "4GB"
+
+# Lower bound for WAL files retained for future checkpoints.
+postgresql_min_wal_size: "512MB"
+
+################################################################################
+# Autovacuum tuning
+################################################################################
+
+# Enable autovacuum to control table and index bloat.
+postgresql_autovacuum: "on"
+
+# Maximum number of concurrent autovacuum workers.
+postgresql_autovacuum_max_workers: 2
+
+# Delay between autovacuum launcher cycles.
+postgresql_autovacuum_naptime: "1min"
+
+# Table-change fraction that triggers vacuum activity.
+postgresql_autovacuum_vacuum_scale_factor: "0.05"
+
+# Table-change fraction that triggers analyze activity.
+postgresql_autovacuum_analyze_scale_factor: "0.05"
+
+# Delay inserted between autovacuum cost-limit accounting steps.
+postgresql_autovacuum_vacuum_cost_delay: "10ms"
+
+# Cost limit used by autovacuum workers.
+postgresql_autovacuum_vacuum_cost_limit: 1000
+
+################################################################################
+# Planner / SSD-oriented defaults
+################################################################################
+
+# Planner cost estimate for non-sequential page reads on SSD-backed storage.
+postgresql_random_page_cost: "1.5"
+
+# Estimated number of concurrent disk I/O operations for regular queries.
+postgresql_effective_io_concurrency: 32
+
+# Estimated number of concurrent disk I/O operations for maintenance tasks.
+postgresql_maintenance_io_concurrency: 16
+
+################################################################################
+# Locale / text / time
+################################################################################
+
+# Time zone used by PostgreSQL sessions unless overridden by clients.
+postgresql_timezone: "UTC"
+
+# Time zone used for PostgreSQL log timestamps.
+postgresql_log_timezone: "UTC"
+
+# Date and time display style used by PostgreSQL.
+postgresql_datestyle: "iso, ymd"
+
+# Locale used for PostgreSQL system error messages. Null keeps the platform/initdb default.
+postgresql_lc_messages: null
+
+# Locale used for PostgreSQL monetary formatting. Null keeps the platform/initdb default.
+postgresql_lc_monetary: null
+
+# Locale used for PostgreSQL number formatting. Null keeps the platform/initdb default.
+postgresql_lc_numeric: null
+
+# Locale used for PostgreSQL date and time formatting. Null keeps the platform/initdb default.
+postgresql_lc_time: null
+
+# Default text search configuration for new sessions.
+postgresql_default_text_search_config: "pg_catalog.english"
+
+# Password hashing method for newly stored PostgreSQL passwords.
+postgresql_password_encryption: "scram-sha-256"
+
+################################################################################
+# Logging
+################################################################################
+
+# PostgreSQL log destination setting.
+postgresql_log_destination: "stderr"
+
+# Keep the internal logging collector disabled for systemd/container logging.
+postgresql_logging_collector: "off"
+
+# SQL statement classes written to the PostgreSQL log.
+postgresql_log_statement: "none"
+
+# Log statements whose runtime is at least this many milliseconds.
+postgresql_log_min_duration_statement: 1000
+
+# Log temporary files whose size is at least this threshold.
+postgresql_log_temp_files: "64MB"
+
+# Log checkpoint activity for operational visibility.
+postgresql_log_checkpoints: "on"
+
+# Log autovacuum actions whose runtime is at least this duration.
+postgresql_log_autovacuum_min_duration: "1min"
+
+################################################################################
+# Additional PostgreSQL settings
+################################################################################
+
+# Additional settings that are expected to become effective after a reload.
+postgresql_config_extra_reload: []
+# - name: statement_timeout
+#   value: "30s"
+
+# Additional settings that are expected to require a PostgreSQL restart.
+postgresql_config_extra_restart: []
+# - name: shared_preload_libraries
+#   value: "pg_stat_statements"
+
+################################################################################
+# PostgreSQL identity mapping
+################################################################################
+
+# Entries rendered into the fully managed pg_ident.conf file.
+postgresql_pg_ident_entries: []
+# - map: localmap
+#   system_user: root
+#   database_user: postgres
+
+################################################################################
+# Host-based authentication
+################################################################################
+
+# Entries rendered into the fully managed pg_hba.conf file.
+postgresql_hba_entries:
+  - type: local
+    database: all
+    user: postgres
+    method: peer
+
+  - type: local
+    database: all
+    user: all
+    method: peer
+
+  - type: host
+    database: all
+    user: all
+    address: "127.0.0.1/32"
+    method: scram-sha-256
+
+################################################################################
+# PostgreSQL roles and users
+################################################################################
+
+# PostgreSQL roles and login users managed through per-object state.
+postgresql_roles: []
+# - name: app
+#   role_attr_flags: LOGIN
+#   password: "{{ vault_postgresql_app_password }}"
+#   conn_limit: 20
+#   comment: Application login role
+
+################################################################################
+# PostgreSQL role memberships
+################################################################################
+
+# PostgreSQL role memberships managed through per-object state.
+postgresql_memberships: []
+# - groups:
+#     - readonly
+#   target_roles:
+#     - app
+
+################################################################################
+# PostgreSQL tablespaces
+################################################################################
+
+# PostgreSQL tablespaces managed through per-object state.
+postgresql_tablespaces: []
+# - name: fastspace
+#   location: /var/lib/postgresql/tablespaces/fastspace
+#   owner: postgres
+
+################################################################################
+# PostgreSQL databases
+################################################################################
+
+# PostgreSQL databases managed through per-object state.
 postgresql_databases: []
-#  - name: awesomedb    # required; the rest is optional
-#    state:             # default('present')
-#    ca_cert:           # default(omit)
-#    conn_limit:        # default(omit)
-#    dump_extra_args:   # default(omit)
-#    encoding:          # default(omit)
-#    lc_collate:        # default(omit)
-#    lc_ctype:          # default(omit)
-#    login_host:        # default(omit)
-#    login_password:    # default(omit)
-#    login_unix_socket: # default(omit)
-#    login_user:        # default(omit)
-#    maintenance_db:    # default(omit)
-#    owner:             # default(omit)
-#    port:              # default(omit)
-#    session_role:      # default(omit)
-#    ssl_mode:          # default(omit)
-#    tablespace:        # default(omit)
-#    target:            # default(omit)
-#    target_opts:       # default(omit)
-#    template:          # default(omit)
-#    trust_input:       # default(omit)
+# - name: appdb
+#   owner: app
+#   encoding: UTF8
+#   lc_collate: C.UTF-8
+#   lc_ctype: C.UTF-8
+#   tablespace: fastspace
 
-# Users.
-# see: https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_user_module.html
-postgresql_users: []
-#  - name: looseruser     # required; the rest is optional
-#    state:               # default('present')
-#    ca_cert:             # default(omit)
-#    conn_limit:          # default(omit)
-#    db:                  # default(omit)
-#    encrypted:           # default(omit)
-#    expires:             # default(omit)
-#    fail_on_user:        # default(omit)
-#    groups:              # default(omit)
-#    login_host:          # default(omit)
-#    login_password:      # default(omit)
-#    login_unix_socket:   # default(omit)
-#    login_user:          # default(omit)
-#    no_password_changes: # default(omit)
-#    password:            # default(omit)
-#    port:                # default(omit)
-#    role_attr_flags:     # default(omit)
-#    session_role:        # default(omit)
-#    ssl_mode:            # default(omit)
-#    trust_input:         # default(omit)
+################################################################################
+# PostgreSQL extensions
+################################################################################
+
+# PostgreSQL extensions managed through per-object state in their target database.
+postgresql_extensions: []
+# - name: pg_stat_statements
+#   database: appdb
+
+################################################################################
+# Logical replication publications
+################################################################################
+
+# Logical replication publications managed through per-object state in their source database.
+postgresql_publications: []
+# - name: app_publication
+#   database: appdb
+#   tables_in_schema:
+#     - app
+#   parameters:
+#     publish: "insert, update, delete, truncate"
+
+################################################################################
+# Logical replication subscriptions
+################################################################################
+
+# Logical replication subscriptions managed through per-object state in their local database.
+postgresql_subscriptions: []
+# - name: app_subscription
+#   database: appdb
+#   connparams:
+#     host: postgres-a.example.org
+#     port: 5432
+#     user: replicator
+#     password: "{{ vault_postgresql_replicator_password }}"
+#     dbname: appdb
+#     sslmode: verify-full
+#   publications:
+#     - app_publication
+#   subsparams:
+#     copy_data: true
+#     create_slot: true
+#     enabled: true

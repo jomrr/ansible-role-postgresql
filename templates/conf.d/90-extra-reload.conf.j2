@@ -1,0 +1,9 @@
+{{ ansible_managed | comment }}
+
+################################################################################
+# Additional reloadable settings
+################################################################################
+
+{% for item in postgresql_config_extra_reload %}
+{{ item.name }} = {% if item.quote | default(true) | bool %}'{{ item.value }}'{% else %}{{ item.value }}{% endif %}
+{% endfor %}

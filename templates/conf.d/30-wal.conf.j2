@@ -1,0 +1,20 @@
+{{ ansible_managed | comment }}
+
+################################################################################
+# WAL, checkpoints, and replication capacity
+################################################################################
+
+wal_level = '{{ postgresql_wal_level }}'
+max_wal_senders = {{ postgresql_max_wal_senders }}
+max_replication_slots = {{ postgresql_max_replication_slots }}
+max_logical_replication_workers = {{ postgresql_max_logical_replication_workers }}
+max_sync_workers_per_subscription = {{ postgresql_max_sync_workers_per_subscription }}
+
+fsync = {{ postgresql_fsync }}
+full_page_writes = {{ postgresql_full_page_writes }}
+synchronous_commit = {{ postgresql_synchronous_commit }}
+wal_compression = {{ postgresql_wal_compression }}
+checkpoint_timeout = '{{ postgresql_checkpoint_timeout }}'
+checkpoint_completion_target = {{ postgresql_checkpoint_completion_target }}
+max_wal_size = '{{ postgresql_max_wal_size }}'
+min_wal_size = '{{ postgresql_min_wal_size }}'

@@ -1,0 +1,17 @@
+---
+# role: jomrr.postgresql
+# file: vars/Suse.yml
+
+__postgresql_packages:
+  - postgresql
+  - postgresql-server
+  - postgresql-contrib
+  - python3-psycopg2
+
+__postgresql_service_name: postgresql
+__postgresql_user: postgres
+__postgresql_group: postgres
+__postgresql_data_dir: /var/lib/pgsql/data
+__postgresql_config_dir: /var/lib/pgsql/data
+__postgresql_bin_dir: /usr/bin
+__postgresql_cluster_provider: initdb

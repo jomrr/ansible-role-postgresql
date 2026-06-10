@@ -1,0 +1,10 @@
+{{ ansible_managed | comment }}
+
+################################################################################
+# Planner and storage cost model
+################################################################################
+
+effective_cache_size = '{{ postgresql_effective_cache_size }}'
+random_page_cost = {{ postgresql_random_page_cost }}
+effective_io_concurrency = {{ postgresql_effective_io_concurrency }}
+maintenance_io_concurrency = {{ postgresql_maintenance_io_concurrency }}

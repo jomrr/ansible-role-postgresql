@@ -1,12 +1,125 @@
-# role: jomrr.postgresql
+# role: postgresql
 # file: molecule/resources/playbooks/verify.yml
-# code: language=ansible-jinja
 
-- name: "PLAYBOOK | Verify | postgresql"
+- name: "Molecule | verify | postgresql"
   hosts: all
   gather_facts: false
+  vars:
+    postgresql_molecule_expected_port: 5433
   tasks:
-    - name: "Assert true"
+    - name: "PostgreSQL | Check psql is available"
+      ansible.builtin.command:
+        cmd: psql --version
+      changed_when: false
+
+    - name: "PostgreSQL | Check PostgreSQL service facts"
+      ansible.builtin.service_facts:
+
+    - name: "PostgreSQL | Assert PostgreSQL service is known"
       ansible.builtin.assert:
-        that: "true"
-        fail_msg: "This should never fail"
+        that:
+          - ansible_facts.services | dict2items | selectattr('key', 'match', '^postgresql') | list | length > 0
+        fail_msg: "No PostgreSQL service was detected."
+
+    - name: "PostgreSQL | Check local postgres connection"
+      become: true
+      become_user: postgres
+      ansible.builtin.command:
+        cmd: >-
+          psql
+          -p {{ postgresql_molecule_expected_port }}
+          -XAtqc
+          "SELECT 1"
+      changed_when: false
+
+    - name: "PostgreSQL | Assert managed port"
+      become: true
+      become_user: postgres
+      ansible.builtin.command:
+        cmd: >-
+          psql
+          -p {{ postgresql_molecule_expected_port }}
+          -XAtqc
+          "SHOW port"
+      register: __postgresql_show_port
+      changed_when: false
+      failed_when: __postgresql_show_port.stdout | int != postgresql_molecule_expected_port
+
+    - name: "PostgreSQL | Assert no file settings errors"
+      become: true
+      become_user: postgres
+      ansible.builtin.command:
+        cmd: >-
+          psql
+          -p {{ postgresql_molecule_expected_port }}
+          -XAtqc
+          "SELECT count(*) FROM pg_file_settings WHERE error IS NOT NULL"
+      register: __postgresql_file_settings_errors
+      changed_when: false
+      failed_when: __postgresql_file_settings_errors.stdout | int > 0
+
+    - name: "PostgreSQL | Assert no pg_hba.conf errors"
+      become: true
+      become_user: postgres
+      ansible.builtin.command:
+        cmd: >-
+          psql
+          -p {{ postgresql_molecule_expected_port }}
+          -XAtqc
+          "SELECT count(*) FROM pg_hba_file_rules WHERE error IS NOT NULL"
+      register: __postgresql_hba_errors
+      changed_when: false
+      failed_when: __postgresql_hba_errors.stdout | int > 0
+
+    - name: "PostgreSQL | Assert no pg_ident.conf errors"
+      become: true
+      become_user: postgres
+      ansible.builtin.command:
+        cmd: >-
+          psql
+          -p {{ postgresql_molecule_expected_port }}
+          -XAtqc
+          "SELECT count(*) FROM pg_ident_file_mappings WHERE error IS NOT NULL"
+      register: __postgresql_ident_errors
+      changed_when: false
+      failed_when: __postgresql_ident_errors.stdout | int > 0
+
+    - name: "PostgreSQL | Assert managed role exists"
+      become: true
+      become_user: postgres
+      ansible.builtin.command:
+        cmd: >-
+          psql
+          -p {{ postgresql_molecule_expected_port }}
+          -XAtqc
+          "SELECT count(*) FROM pg_roles WHERE rolname = 'app'"
+      register: __postgresql_app_role_count
+      changed_when: false
+      failed_when: __postgresql_app_role_count.stdout | int != 1
+
+    - name: "PostgreSQL | Assert managed database exists"
+      become: true
+      become_user: postgres
+      ansible.builtin.command:
+        cmd: >-
+          psql
+          -p {{ postgresql_molecule_expected_port }}
+          -XAtqc
+          "SELECT count(*) FROM pg_database WHERE datname = 'appdb'"
+      register: __postgresql_appdb_count
+      changed_when: false
+      failed_when: __postgresql_appdb_count.stdout | int != 1
+
+    - name: "PostgreSQL | Assert managed extension exists"
+      become: true
+      become_user: postgres
+      ansible.builtin.command:
+        cmd: >-
+          psql
+          -p {{ postgresql_molecule_expected_port }}
+          -d appdb
+          -XAtqc
+          "SELECT count(*) FROM pg_extension WHERE extname = 'pgcrypto'"
+      register: __postgresql_pgcrypto_count
+      changed_when: false
+      failed_when: __postgresql_pgcrypto_count.stdout | int != 1

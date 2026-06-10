@@ -1,0 +1,12 @@
+{{ ansible_managed | comment }}
+
+################################################################################
+# Autovacuum
+################################################################################
+
+autovacuum = {{ postgresql_autovacuum }}
+autovacuum_naptime = '{{ postgresql_autovacuum_naptime }}'
+autovacuum_vacuum_scale_factor = {{ postgresql_autovacuum_vacuum_scale_factor }}
+autovacuum_analyze_scale_factor = {{ postgresql_autovacuum_analyze_scale_factor }}
+autovacuum_vacuum_cost_delay = '{{ postgresql_autovacuum_vacuum_cost_delay }}'
+autovacuum_vacuum_cost_limit = {{ postgresql_autovacuum_vacuum_cost_limit }}

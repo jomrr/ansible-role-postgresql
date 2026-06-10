@@ -1,0 +1,19 @@
+{{ ansible_managed | comment }}
+
+################################################################################
+# Memory and workers
+################################################################################
+
+shared_buffers = '{{ postgresql_shared_buffers }}'
+work_mem = '{{ postgresql_work_mem }}'
+hash_mem_multiplier = {{ postgresql_hash_mem_multiplier }}
+maintenance_work_mem = '{{ postgresql_maintenance_work_mem }}'
+autovacuum_work_mem = '{{ postgresql_autovacuum_work_mem }}'
+temp_buffers = '{{ postgresql_temp_buffers }}'
+temp_file_limit = '{{ postgresql_temp_file_limit }}'
+
+max_worker_processes = {{ postgresql_max_worker_processes }}
+max_parallel_workers = {{ postgresql_max_parallel_workers }}
+max_parallel_workers_per_gather = {{ postgresql_max_parallel_workers_per_gather }}
+max_parallel_maintenance_workers = {{ postgresql_max_parallel_maintenance_workers }}
+autovacuum_max_workers = {{ postgresql_autovacuum_max_workers }}
