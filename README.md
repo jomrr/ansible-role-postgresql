@@ -109,8 +109,8 @@ The following variables are part of the public role interface.
 | `postgresql_log_temp_files` | `str` | `false` | `64MB` | Log temp files above this size. |
 | `postgresql_log_checkpoints` | `str` | `false` | `on` | Whether checkpoint logging is enabled. |
 | `postgresql_log_autovacuum_min_duration` | `str` | `false` | `1min` | Log autovacuum actions above this duration. |
-| `postgresql_config_extra_reload` | `list` | `false` | [] | Additional PostgreSQL settings expected to become effective after a reload. |
-| `postgresql_config_extra_restart` | `list` | `false` | [] | Additional PostgreSQL settings expected to require a PostgreSQL restart. |
+| `postgresql_config_extra_reload` | `list` | `false` | [] | Additional PostgreSQL settings expected to become effective after a reload.<br>Entries require name and value. The optional quote flag defaults to true. |
+| `postgresql_config_extra_restart` | `list` | `false` | [] | Additional PostgreSQL settings expected to require a PostgreSQL restart.<br>Entries require name and value. The optional quote flag defaults to true. |
 | `postgresql_pg_ident_entries` | `list` | `false` | [] | Entries rendered into the fully managed pg_ident.conf file. |
 | `postgresql_hba_entries` | `list` | `false` | - type: local<br />  database: all<br />  user: postgres<br />  method: peer<br />- type: local<br />  database: all<br />  user: all<br />  method: peer<br />- type: host<br />  database: all<br />  user: all<br />  address: 127.0.0.1/32<br />  method: scram-sha-256 | Entries rendered into the fully managed pg_hba.conf file. |
 | `postgresql_roles` | `list` | `false` | [] | PostgreSQL roles and login users managed through per-object state. |

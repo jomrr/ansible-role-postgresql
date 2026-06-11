@@ -376,6 +376,7 @@ argument_specs:
         default: []
         description:
           - Additional PostgreSQL settings expected to become effective after a reload.
+          - Entries require name and value. The optional quote flag defaults to true.
       postgresql_config_extra_restart:
         type: list
         elements: dict
@@ -383,6 +384,7 @@ argument_specs:
         default: []
         description:
           - Additional PostgreSQL settings expected to require a PostgreSQL restart.
+          - Entries require name and value. The optional quote flag defaults to true.
       postgresql_pg_ident_entries:
         type: list
         elements: dict

@@ -45,3 +45,44 @@
   tags:
     - postgresql_validate
     - postgresql_objects
+
+- name: "PostgreSQL | Assert extra configuration entries are valid"
+  ansible.builtin.assert:
+    that:
+      - _postgresql_extra_config_missing_names | length == 0
+      - _postgresql_extra_config_missing_values | length == 0
+      - _postgresql_extra_config_invalid_names | length == 0
+    fail_msg: >-
+      Extra PostgreSQL configuration entries must define name and value, and names may
+      only contain letters, digits, underscores, and dots. Invalid entries:
+      {{
+        (
+          _postgresql_extra_config_missing_names
+          + _postgresql_extra_config_missing_values
+          + _postgresql_extra_config_invalid_names
+        ) | to_json
+      }}
+  vars:
+    _postgresql_extra_config_entries: "{{ postgresql_config_extra_reload + postgresql_config_extra_restart }}"
+    _postgresql_extra_config_missing_names: >-
+      {{
+        _postgresql_extra_config_entries
+        | rejectattr('name', 'defined')
+        | list
+      }}
+    _postgresql_extra_config_missing_values: >-
+      {{
+        _postgresql_extra_config_entries
+        | rejectattr('value', 'defined')
+        | list
+      }}
+    _postgresql_extra_config_invalid_names: >-
+      {{
+        _postgresql_extra_config_entries
+        | selectattr('name', 'defined')
+        | rejectattr('name', 'match', '^[A-Za-z0-9_.]+$')
+        | list
+      }}
+  tags:
+    - postgresql_validate
+    - postgresql_config

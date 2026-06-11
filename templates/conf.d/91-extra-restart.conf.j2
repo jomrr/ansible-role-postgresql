@@ -5,5 +5,6 @@
 ################################################################################
 
 {% for item in postgresql_config_extra_restart %}
-{{ item.name }} = {% if item.quote | default(true) | bool %}'{{ item.value }}'{% else %}{{ item.value }}{% endif %}
+{% set _postgresql_config_value = item.value | string | replace("'", "''") %}
+{{ item.name }} = {% if item.quote | default(true) | bool %}'{{ _postgresql_config_value }}'{% else %}{{ item.value }}{% endif %}
 {% endfor %}
