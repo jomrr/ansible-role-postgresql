@@ -34,12 +34,15 @@
     - postgresql_config
 
 - name: "PostgreSQL | Configure restart-scoped settings"
+  become: true
+  become_user: "{{ __postgresql_user }}"
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ __postgresql_config_dir }}/conf.d/{{ item.dest }}"
     owner: "{{ __postgresql_user }}"
     group: "{{ __postgresql_group }}"
     mode: "0600"
+    validate: "{{ __postgresql_config_validate_command }}"
   loop: "{{ __postgresql_config_restart_templates }}"
   notify:
     - Mark postgresql restart required
@@ -49,12 +52,15 @@
     - postgresql_config
 
 - name: "PostgreSQL | Configure reload-scoped settings"
+  become: true
+  become_user: "{{ __postgresql_user }}"
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ __postgresql_config_dir }}/conf.d/{{ item.dest }}"
     owner: "{{ __postgresql_user }}"
     group: "{{ __postgresql_group }}"
     mode: "0600"
+    validate: "{{ __postgresql_config_validate_command }}"
   loop: "{{ __postgresql_config_reload_templates }}"
   notify:
     - Validate postgresql configuration

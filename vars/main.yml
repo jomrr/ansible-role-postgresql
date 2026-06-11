@@ -25,6 +25,7 @@ __postgresql_config_reload_templates:
     dest: 90-extra-reload.conf
 
 __postgresql_config_validate_command: >-
-  su -s /bin/sh -c
-  '{{ __postgresql_bin_dir }}/postgres -D {{ __postgresql_data_dir }} -C config_file -c config_file=%s'
-  {{ __postgresql_user }}
+  {{ __postgresql_bin_dir }}/postgres
+  -D {{ __postgresql_data_dir }}
+  -C config_file
+  -c config_file=%s
