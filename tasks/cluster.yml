@@ -27,16 +27,6 @@
   tags:
     - postgresql_cluster
 
-- name: "PostgreSQL | Set postgresql-common cluster facts"
-  ansible.builtin.set_fact:
-    __postgresql_data_dir: "{{ __postgresql_cluster_line.split()[5] }}"
-    __postgresql_config_dir: "/etc/postgresql/{{ __postgresql_cluster_line.split()[0] }}/{{ __postgresql_cluster_name }}"
-    __postgresql_bin_dir: "/usr/lib/postgresql/{{ __postgresql_cluster_line.split()[0] }}/bin"
-    __postgresql_service_name: "postgresql@{{ __postgresql_cluster_line.split()[0] }}-{{ __postgresql_cluster_name }}"
-  when: __postgresql_cluster_provider == "postgresql_common"
-  tags:
-    - postgresql_cluster
-
 - name: "PostgreSQL | Assert postgresql-common cluster exists"
   ansible.builtin.assert:
     that:
@@ -53,6 +43,7 @@
     __postgresql_data_dir: "{{ __postgresql_cluster_line.split()[5] }}"
     __postgresql_config_dir: "/etc/postgresql/{{ __postgresql_cluster_line.split()[0] }}/{{ __postgresql_cluster_name }}"
     __postgresql_bin_dir: "/usr/lib/postgresql/{{ __postgresql_cluster_line.split()[0] }}/bin"
+    __postgresql_service_name: "postgresql@{{ __postgresql_cluster_line.split()[0] }}-{{ __postgresql_cluster_name }}"
   when: __postgresql_cluster_provider == "postgresql_common"
   tags:
     - postgresql_cluster

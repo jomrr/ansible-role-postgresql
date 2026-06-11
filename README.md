@@ -40,9 +40,11 @@ This role installs, configures, and manages PostgreSQL runtime state.
 
 ```yaml
 collections:
+  - name: ansible.posix
+  - name: community.general
+    version: '>=12.0.0'
   - name: community.postgresql
     version: '>=3.12.0,<5.0.0'
-  - name: ansible.posix
 ```
 
 ## Role Variables
@@ -247,4 +249,4 @@ postgresql_publications:
 This project is licensed under the MIT License.
 See [LICENSE](LICENSE) for the full license text.
 
-Copyright (c) 2020 Jonas Mauer.
+Copyright (c) 2020-2026 Jonas Mauer.
