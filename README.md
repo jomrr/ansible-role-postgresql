@@ -141,8 +141,8 @@ The service is always enabled at boot and started after configuration. Reloads a
 ### Handlers
 
 - Validate postgresql configuration
-- Reload postgresql
-- Restart postgresql
+- Mark postgresql restart required
+- Apply postgresql configuration
 
 ## Security Notes
 

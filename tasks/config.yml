@@ -12,6 +12,13 @@
   tags:
     - postgresql_config
 
+- name: "PostgreSQL | Reset configuration apply mode"
+  ansible.builtin.set_fact:
+    __postgresql_restart_required: false
+  changed_when: false
+  tags:
+    - postgresql_config
+
 - name: "PostgreSQL | Ensure PostgreSQL includes managed configuration directory"
   ansible.builtin.lineinfile:
     path: "{{ __postgresql_config_dir }}/postgresql.conf"
@@ -22,7 +29,7 @@
     mode: "0600"
   notify:
     - Validate postgresql configuration
-    - Reload postgresql
+    - Apply postgresql configuration
   tags:
     - postgresql_config
 
@@ -35,8 +42,9 @@
     mode: "0600"
   loop: "{{ __postgresql_config_restart_templates }}"
   notify:
+    - Mark postgresql restart required
     - Validate postgresql configuration
-    - Restart postgresql
+    - Apply postgresql configuration
   tags:
     - postgresql_config
 
@@ -50,6 +58,6 @@
   loop: "{{ __postgresql_config_reload_templates }}"
   notify:
     - Validate postgresql configuration
-    - Reload postgresql
+    - Apply postgresql configuration
   tags:
     - postgresql_config

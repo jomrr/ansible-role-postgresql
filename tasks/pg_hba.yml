@@ -26,6 +26,6 @@
     mode: "0640"
   notify:
     - Validate postgresql configuration
-    - Reload postgresql
+    - Apply postgresql configuration
   tags:
     - postgresql_pg_hba

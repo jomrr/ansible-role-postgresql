@@ -15,16 +15,16 @@
   tags:
     - postgresql_validate
 
-- name: "Reload postgresql"
-  ansible.builtin.service:
-    name: "{{ __postgresql_service_name }}"
-    state: reloaded
+- name: "Mark postgresql restart required"
+  ansible.builtin.set_fact:
+    __postgresql_restart_required: true
+  changed_when: false
   tags:
     - postgresql_service
 
-- name: "Restart postgresql"
+- name: "Apply postgresql configuration"
   ansible.builtin.service:
     name: "{{ __postgresql_service_name }}"
-    state: restarted
+    state: "{{ 'restarted' if __postgresql_restart_required | default(false) | bool else 'reloaded' }}"
   tags:
     - postgresql_service
