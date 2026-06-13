@@ -187,6 +187,52 @@ postgresql_default_text_search_config: "pg_catalog.english"
 postgresql_password_encryption: "scram-sha-256"
 
 ################################################################################
+# SSL / TLS
+################################################################################
+
+# Enable TLS for PostgreSQL client connections.
+postgresql_ssl: "off"
+
+# Server certificate file. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_cert_file: null
+
+# Server private key file. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_key_file: null
+
+# Trusted CA file for client certificate validation. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_ca_file: null
+
+# Certificate revocation list file. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_crl_file: null
+
+# Certificate revocation list directory. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_crl_dir: null
+
+# TLS cipher list for TLS 1.2 and older. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_ciphers: null
+
+# TLS 1.3 cipher suites. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_tls13_ciphers: null
+
+# Prefer server cipher order.
+postgresql_ssl_prefer_server_ciphers: "on"
+
+# Minimum TLS protocol version. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_min_protocol_version: null
+
+# Maximum TLS protocol version. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_max_protocol_version: null
+
+# Diffie-Hellman parameters file. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_dh_params_file: null
+
+# Command used to unlock passphrase-protected private keys. Null keeps the PostgreSQL/platform default.
+postgresql_ssl_passphrase_command: null
+
+# Allow passphrase command during reload.
+postgresql_ssl_passphrase_command_supports_reload: "off"
+
+################################################################################
 # Logging
 ################################################################################
 

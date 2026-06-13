@@ -1,0 +1,48 @@
+{{ ansible_managed | comment }}
+
+################################################################################
+# SSL / TLS
+################################################################################
+
+{% if postgresql_ssl is not none %}
+ssl = {{ postgresql_ssl }}
+{% endif %}
+{% if postgresql_ssl_cert_file is not none %}
+ssl_cert_file = '{{ postgresql_ssl_cert_file }}'
+{% endif %}
+{% if postgresql_ssl_key_file is not none %}
+ssl_key_file = '{{ postgresql_ssl_key_file }}'
+{% endif %}
+{% if postgresql_ssl_ca_file is not none %}
+ssl_ca_file = '{{ postgresql_ssl_ca_file }}'
+{% endif %}
+{% if postgresql_ssl_crl_file is not none %}
+ssl_crl_file = '{{ postgresql_ssl_crl_file }}'
+{% endif %}
+{% if postgresql_ssl_crl_dir is not none %}
+ssl_crl_dir = '{{ postgresql_ssl_crl_dir }}'
+{% endif %}
+{% if postgresql_ssl_ciphers is not none %}
+ssl_ciphers = '{{ postgresql_ssl_ciphers }}'
+{% endif %}
+{% if postgresql_ssl_tls13_ciphers is not none %}
+ssl_tls13_ciphers = '{{ postgresql_ssl_tls13_ciphers }}'
+{% endif %}
+{% if postgresql_ssl_prefer_server_ciphers is not none %}
+ssl_prefer_server_ciphers = {{ postgresql_ssl_prefer_server_ciphers }}
+{% endif %}
+{% if postgresql_ssl_min_protocol_version is not none %}
+ssl_min_protocol_version = '{{ postgresql_ssl_min_protocol_version }}'
+{% endif %}
+{% if postgresql_ssl_max_protocol_version is not none %}
+ssl_max_protocol_version = '{{ postgresql_ssl_max_protocol_version }}'
+{% endif %}
+{% if postgresql_ssl_dh_params_file is not none %}
+ssl_dh_params_file = '{{ postgresql_ssl_dh_params_file }}'
+{% endif %}
+{% if postgresql_ssl_passphrase_command is not none %}
+ssl_passphrase_command = '{{ postgresql_ssl_passphrase_command }}'
+{% endif %}
+{% if postgresql_ssl_passphrase_command_supports_reload is not none %}
+ssl_passphrase_command_supports_reload = {{ postgresql_ssl_passphrase_command_supports_reload }}
+{% endif %}

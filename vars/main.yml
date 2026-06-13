@@ -15,6 +15,8 @@ __postgresql_config_restart_templates:
     dest: 91-extra-restart.conf
 
 __postgresql_config_reload_templates:
+  - src: conf.d/15-ssl.conf.j2
+    dest: 15-ssl.conf
   - src: conf.d/40-autovacuum.conf.j2
     dest: 40-autovacuum.conf
   - src: conf.d/50-planner.conf.j2

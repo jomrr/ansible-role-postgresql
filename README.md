@@ -102,6 +102,20 @@ The following variables are part of the public role interface.
 | `postgresql_lc_time` | `str` | `false` | `None` | Locale used for PostgreSQL date and time formatting. |
 | `postgresql_default_text_search_config` | `str` | `false` | `pg_catalog.english` | Default text search configuration. |
 | `postgresql_password_encryption` | `str` | `false` | `scram-sha-256` | Default password encryption method. |
+| `postgresql_ssl` | `str` | `false` | `off` | Enable TLS for PostgreSQL client connections. |
+| `postgresql_ssl_cert_file` | `str` | `false` | `None` | Server certificate file used by PostgreSQL TLS. |
+| `postgresql_ssl_key_file` | `str` | `false` | `None` | Server private key file used by PostgreSQL TLS. |
+| `postgresql_ssl_ca_file` | `str` | `false` | `None` | Trusted CA file used for PostgreSQL client certificate validation. |
+| `postgresql_ssl_crl_file` | `str` | `false` | `None` | Certificate revocation list file used by PostgreSQL TLS. |
+| `postgresql_ssl_crl_dir` | `str` | `false` | `None` | Certificate revocation list directory used by PostgreSQL TLS. |
+| `postgresql_ssl_ciphers` | `str` | `false` | `None` | TLS cipher list for TLS 1.2 and older. |
+| `postgresql_ssl_tls13_ciphers` | `str` | `false` | `None` | TLS 1.3 cipher suites. |
+| `postgresql_ssl_prefer_server_ciphers` | `str` | `false` | `on` | Whether PostgreSQL should prefer the server cipher order. |
+| `postgresql_ssl_min_protocol_version` | `str` | `false` | `None` | Minimum TLS protocol version. |
+| `postgresql_ssl_max_protocol_version` | `str` | `false` | `None` | Maximum TLS protocol version. |
+| `postgresql_ssl_dh_params_file` | `str` | `false` | `None` | Diffie-Hellman parameters file used by PostgreSQL TLS. |
+| `postgresql_ssl_passphrase_command` | `str` | `false` | `None` | Command used to unlock passphrase-protected private keys. |
+| `postgresql_ssl_passphrase_command_supports_reload` | `str` | `false` | `off` | Whether the TLS passphrase command may be used during reload. |
 | `postgresql_log_destination` | `str` | `false` | `stderr` | PostgreSQL log destination. |
 | `postgresql_logging_collector` | `str` | `false` | `off` | Whether PostgreSQL logging collector is enabled. |
 | `postgresql_log_statement` | `str` | `false` | `none` | PostgreSQL statement logging level. |
@@ -212,6 +226,10 @@ postgresql_wal_level: logical
 postgresql_listen_addresses:
   - 127.0.0.1
   - 10.10.20.11
+postgresql_ssl: "on"
+postgresql_ssl_cert_file: /etc/postgresql/tls/server.crt
+postgresql_ssl_key_file: /etc/postgresql/tls/server.key
+postgresql_ssl_ca_file: /etc/postgresql/tls/root-ca.crt
 postgresql_roles:
   - name: replicator
     role_attr_flags: LOGIN,REPLICATION
@@ -239,6 +257,7 @@ postgresql_publications:
 
 - https://docs.ansible.com/ansible/latest/collections/community/postgresql/
 - https://www.postgresql.org/docs/current/logical-replication.html
+- https://www.postgresql.org/docs/current/ssl-tcp.html
 
 ## Author
 
