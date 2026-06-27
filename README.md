@@ -1,6 +1,6 @@
 # Ansible Role: postgresql
 
-![GitHub](https://img.shields.io/github/license/jomrr/ansible-role-postgresql) ![GitHub last commit](https://img.shields.io/github/last-commit/jomrr/ansible-role-postgresql) ![GitHub issues](https://img.shields.io/github/issues-raw/jomrr/ansible-role-postgresql) [![dev](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-postgresql/dev-push-smoke.yml?branch=dev&event=push&label=dev)](https://github.com/jomrr/ansible-role-postgresql/actions/workflows/dev-push-smoke.yml?query=branch%3Adev) [![main](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-postgresql/main-full-gate.yml?branch=main&event=push&label=main)](https://github.com/jomrr/ansible-role-postgresql/actions/workflows/main-full-gate.yml?query=branch%3Amain)
+![GitHub](https://img.shields.io/github/license/jomrr/ansible-role-postgresql) ![GitHub last commit](https://img.shields.io/github/last-commit/jomrr/ansible-role-postgresql) ![GitHub issues](https://img.shields.io/github/issues-raw/jomrr/ansible-role-postgresql) [![dev](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-postgresql/dev.yml?branch=dev&event=push&label=dev)](https://github.com/jomrr/ansible-role-postgresql/actions/workflows/dev.yml?query=branch%3Adev) [![main](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-postgresql/main.yml?branch=main&event=push&label=main)](https://github.com/jomrr/ansible-role-postgresql/actions/workflows/main.yml?query=branch%3Amain)
 
 Ansible role for installing and managing PostgreSQL.
 
@@ -171,6 +171,7 @@ The service is always enabled at boot and started after configuration. Reloads a
 - The role does not orchestrate dependency-safe destructive cleanup across related PostgreSQL objects.
 - Logical replication copies DML changes, not DDL. Schema migrations must be orchestrated outside this role.
 - Debian and Ubuntu use postgresql-common cluster discovery via pg_lsclusters instead of static major-version maps.
+- TLS configuration settings are managed as PostgreSQL config values; certificate issuance and file deployment stay outside this role.
 
 ## Supported Platforms
 
