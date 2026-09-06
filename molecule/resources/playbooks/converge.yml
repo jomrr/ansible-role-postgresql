@@ -1,7 +1,8 @@
+---
 # role: postgresql
 # file: molecule/resources/playbooks/converge.yml
 
-- name: "Molecule | converge | postgresql"
+- name: "POSTGRESQL | Converge PostgreSQL"
   hosts: all
   gather_facts: true
   roles:

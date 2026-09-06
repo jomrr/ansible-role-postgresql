@@ -2,29 +2,37 @@
 # role: postgresql
 # file: handlers/main.yml
 
-- name: "Validate postgresql configuration"
-  ansible.builtin.command:
-    cmd: >-
-      {{ __postgresql_bin_dir }}/postgres
-      -D {{ __postgresql_data_dir }}
-      -C config_file
-      -c config_file={{ __postgresql_config_dir }}/postgresql.conf
-  become: true
-  become_user: "{{ __postgresql_user }}"
-  changed_when: false
-  tags:
-    - postgresql_validate
-
-- name: "Mark postgresql restart required"
-  ansible.builtin.set_fact:
-    __postgresql_restart_required: true
-  changed_when: false
-  tags:
-    - postgresql_service
-
-- name: "Apply postgresql configuration"
+- name: "POSTGRESQL | Reload configuration"
   ansible.builtin.service:
     name: "{{ __postgresql_service_name }}"
-    state: "{{ 'restarted' if __postgresql_restart_required | default(false) | bool else 'reloaded' }}"
-  tags:
-    - postgresql_service
+    state: reloaded
+  listen: Apply postgresql configuration
+  when:
+    - __postgresql_running
+    - not ansible_check_mode
+
+- name: "POSTGRESQL | Read pending restart requirements"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  community.postgresql.postgresql_query:
+    login_db: postgres
+    login_user: postgres
+    login_port: "{{ __postgresql_login_port }}"
+    login_unix_socket: "{{ __postgresql_login_socket }}"
+    query: SELECT count(*) AS pending FROM pg_settings WHERE pending_restart
+  register: __postgresql_pending_restart
+  changed_when: false
+  listen: Apply postgresql configuration
+  when:
+    - __postgresql_running
+    - not ansible_check_mode
+
+- name: "POSTGRESQL | Restart when PostgreSQL requires it"
+  ansible.builtin.service:
+    name: "{{ __postgresql_service_name }}"
+    state: restarted
+  listen: Apply postgresql configuration
+  when:
+    - __postgresql_running
+    - not ansible_check_mode
+    - __postgresql_extra_restart_result is changed or __postgresql_pending_restart.query_result[0].pending | int > 0

@@ -2,7 +2,7 @@
 # role: postgresql
 # file: tasks/main.yml
 
-- name: "PostgreSQL | Ensure required facts are available"
+- name: "POSTGRESQL | Ensure required facts are available"
   ansible.builtin.setup:
     gather_subset:
       - "!all"
@@ -12,42 +12,47 @@
   tags:
     - postgresql_facts
 
-- name: "PostgreSQL | Include platform variables"
-  ansible.builtin.include_vars: "{{ role_path }}/vars/{{ ansible_facts['os_family'] }}.yml"
+- name: "POSTGRESQL | Include platform variables"
+  ansible.builtin.include_vars: "{{ role_path }}/vars/{{ ansible_facts.os_family }}.yml"
   tags:
     - postgresql_vars
 
-- name: "PostgreSQL | Assert inputs"
+- name: "POSTGRESQL | Assert inputs"
   ansible.builtin.import_tasks: assert.yml
 
-- name: "PostgreSQL | Manage packages"
+- name: "POSTGRESQL | Manage packages"
   ansible.builtin.package:
     name: "{{ __postgresql_packages }}"
     state: present
   tags:
     - postgresql_install
 
-- name: "PostgreSQL | Ensure cluster exists"
-  ansible.builtin.import_tasks: cluster.yml
+- name: "POSTGRESQL | Ensure cluster exists"
+  ansible.builtin.import_tasks: pg_cluster.yml
   tags:
     - postgresql_cluster
 
-- name: "PostgreSQL | Configure PostgreSQL"
-  ansible.builtin.import_tasks: config.yml
+- name: "POSTGRESQL | Inspect runtime before configuring PostgreSQL"
+  ansible.builtin.import_tasks: pg_runtime.yml
   tags:
     - postgresql_config
 
-- name: "PostgreSQL | Configure identity mapping"
+- name: "POSTGRESQL | Configure PostgreSQL"
+  ansible.builtin.import_tasks: pg_config.yml
+  tags:
+    - postgresql_config
+
+- name: "POSTGRESQL | Configure identity mapping"
   ansible.builtin.import_tasks: pg_ident.yml
   tags:
     - postgresql_pg_ident
 
-- name: "PostgreSQL | Configure host-based authentication"
+- name: "POSTGRESQL | Configure host-based authentication"
   ansible.builtin.import_tasks: pg_hba.yml
   tags:
     - postgresql_pg_hba
 
-- name: "PostgreSQL | Manage service"
+- name: "POSTGRESQL | Manage service"
   ansible.builtin.service:
     name: "{{ __postgresql_service_name }}"
     enabled: true
@@ -55,13 +60,13 @@
   tags:
     - postgresql_service
 
-- name: "PostgreSQL | Apply pending configuration changes"
+- name: "POSTGRESQL | Apply pending configuration changes"
   ansible.builtin.meta: flush_handlers
   tags:
     - postgresql_config
 
-- name: "PostgreSQL | Manage runtime objects"
-  ansible.builtin.import_tasks: objects.yml
+- name: "POSTGRESQL | Manage runtime objects"
+  ansible.builtin.import_tasks: pg_objects.yml
   when: >
     postgresql_roles | length > 0 or
     postgresql_memberships | length > 0 or

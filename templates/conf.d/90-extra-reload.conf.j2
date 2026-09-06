@@ -1,10 +1,11 @@
-{{ ansible_managed | comment }}
+# Managed by ansible.
+# file: {{ template_destpath }}
 
 ################################################################################
 # Additional reloadable settings
 ################################################################################
 
 {% for item in postgresql_config_extra_reload %}
-{% set _postgresql_config_value = item.value | string | replace("'", "''") %}
-{{ item.name }} = {% if item.quote | default(true) | bool %}'{{ _postgresql_config_value }}'{% else %}{{ item.value }}{% endif %}
+{% set __postgresql_config_value = item.value | string | replace("'", "''") %}
+{{ item.name }} = {{ ("'" ~ __postgresql_config_value ~ "'") if item.quote | default(true) | bool else item.value }}
 {% endfor %}

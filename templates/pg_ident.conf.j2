@@ -1,7 +1,8 @@
-{{ ansible_managed | comment }}
+# Managed by ansible.
+# file: {{ template_destpath }}
 
 # MAPNAME       SYSTEM-USERNAME         PG-USERNAME
 {% for entry in postgresql_pg_ident_entries %}
-{% set _postgresql_pg_ident_comment = (' # ' ~ entry.comment) if entry.comment is defined else '' %}
-{{ entry.map }} {{ entry.system_user }} {{ entry.database_user }}{{ _postgresql_pg_ident_comment }}
+{% set __postgresql_pg_ident_comment = (' # ' ~ entry.comment) if entry.comment is defined else '' %}
+{{ entry.map }} {{ entry.system_user }} {{ entry.database_user }}{{ __postgresql_pg_ident_comment }}
 {% endfor %}

@@ -22,6 +22,7 @@ provisioner:
   playbooks:
     converge: "../resources/playbooks/converge.yml"
     verify: "../resources/playbooks/verify.yml"
+    side_effect: "../resources/playbooks/side_effect.yml"
   inventory:
     group_vars:
       all:
@@ -37,6 +38,8 @@ provisioner:
         postgresql_max_wal_size: "512MB"
         postgresql_min_wal_size: "80MB"
         postgresql_roles:
+          - name: "readonly"
+            role_attr_flags: "NOLOGIN"
           - name: "app"
             role_attr_flags: "LOGIN"
         postgresql_databases:
@@ -46,9 +49,63 @@ provisioner:
         postgresql_extensions:
           - name: "pgcrypto"
             database: "appdb"
+        postgresql_memberships:
+          - groups:
+              - "readonly"
+            target_roles:
+              - "app"
+        postgresql_tablespaces:
+          - name: "molecule_space"
+            location: "/var/lib/pgsql/molecule-tablespace"
+        postgresql_config_extra_reload:
+          - name: "statement_timeout"
+            value: "30s"
+          - name: "lock_timeout"
+            value: "5s"
+        postgresql_config_extra_restart:
+          - name: "max_prepared_transactions"
+            value: 10
+          - name: "max_locks_per_transaction"
+            value: 128
+        postgresql_pg_ident_entries:
+          - map: "molecule"
+            system_user: "root"
+            database_user: "app"
+        postgresql_hba_entries:
+          - type: "local"
+            database: "all"
+            user: "postgres"
+            method: "peer"
+          - type: "local"
+            database: "appdb"
+            user: "app"
+            method: "peer"
+            options:
+              - "map=molecule"
+          - type: "host"
+            database: "all"
+            user: "all"
+            address: "127.0.0.1/32"
+            method: "scram-sha-256"
 verifier:
   name: "ansible"
 scenario:
+  test_sequence:
+    - "dependency"
+    - "cleanup"
+    - "destroy"
+    - "syntax"
+    - "create"
+    - "prepare"
+    - "converge"
+    - "idempotence"
+    - "check"
+    - "side_effect"
+    - "converge"
+    - "idempotence"
+    - "verify"
+    - "cleanup"
+    - "destroy"
   name: "default"
 platforms:
   - name: "postgresql"

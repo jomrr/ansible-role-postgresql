@@ -13,7 +13,7 @@ This role installs, configures, and manages PostgreSQL runtime state.
 ### Managed
 
 - PostgreSQL packages through platform-specific package lists
-- Distribution-native default PostgreSQL cluster initialization or detection
+- Distribution-native default PostgreSQL cluster initialization
 - PostgreSQL service enablement and runtime state
 - Managed PostgreSQL conf.d snippets
 - Managed pg_hba.conf and pg_ident.conf
@@ -33,8 +33,10 @@ This role installs, configures, and manages PostgreSQL runtime state.
 
 ## Requirements
 
-- community.postgresql collection installed through the generated requirements.yml artifact.
+- PostgreSQL 15 or newer and the community.postgresql collection from collections.yml.
 - Target host must provide psycopg2 or psycopg3 through the platform package list.
+- Local Unix-socket access as the PostgreSQL superuser postgres must use peer authentication.
+- The first HBA entry must be local all postgres peer without authentication options.
 
 ## Dependencies
 
@@ -53,7 +55,7 @@ The following variables are part of the public role interface.
 
 | Name | Type | Required | Default | Description |
 | ---- | ---- | -------- | ------- | ----------- |
-| `postgresql_no_log` | `bool` | `false` | `True` | Suppress logging for PostgreSQL object tasks that may contain credentials. |
+| `postgresql_no_log` | `bool` | `false` | `True` | Suppress logging and diffs for PostgreSQL object and configuration tasks that may contain credentials. |
 | `postgresql_listen_addresses` | `list` | `false` | - 127.0.0.1 | PostgreSQL listen_addresses values. |
 | `postgresql_port` | `int` | `false` | `5432` | PostgreSQL TCP port. |
 | `postgresql_max_connections` | `int` | `false` | `50` | Maximum concurrent PostgreSQL connections. |
@@ -126,7 +128,7 @@ The following variables are part of the public role interface.
 | `postgresql_config_extra_reload` | `list` | `false` | [] | Additional PostgreSQL settings expected to become effective after a reload.<br>Entries require name and value. The optional quote flag defaults to true. |
 | `postgresql_config_extra_restart` | `list` | `false` | [] | Additional PostgreSQL settings expected to require a PostgreSQL restart.<br>Entries require name and value. The optional quote flag defaults to true. |
 | `postgresql_pg_ident_entries` | `list` | `false` | [] | Entries rendered into the fully managed pg_ident.conf file. |
-| `postgresql_hba_entries` | `list` | `false` | - type: local<br />  database: all<br />  user: postgres<br />  method: peer<br />- type: local<br />  database: all<br />  user: all<br />  method: peer<br />- type: host<br />  database: all<br />  user: all<br />  address: 127.0.0.1/32<br />  method: scram-sha-256 | Entries rendered into the fully managed pg_hba.conf file. |
+| `postgresql_hba_entries` | `list` | `false` | - type: local<br />  database: all<br />  user: postgres<br />  method: peer<br />- type: host<br />  database: all<br />  user: all<br />  address: 127.0.0.1/32<br />  method: scram-sha-256 | Entries rendered into the fully managed pg_hba.conf file.<br>The first entry must be local all postgres peer without authentication options. |
 | `postgresql_roles` | `list` | `false` | [] | PostgreSQL roles and login users managed through per-object state. |
 | `postgresql_memberships` | `list` | `false` | [] | PostgreSQL role memberships managed through per-object state. |
 | `postgresql_tablespaces` | `list` | `false` | [] | PostgreSQL tablespaces managed through per-object state. |
@@ -154,23 +156,26 @@ The service is always enabled at boot and started after configuration. Reloads a
 
 ### Handlers
 
-- Validate postgresql configuration
-- Mark postgresql restart required
 - Apply postgresql configuration
 
 ## Security Notes
 
-- postgresql_no_log defaults to true for object tasks that may contain credentials.
+- postgresql_no_log defaults to true for object and configuration tasks that may contain credentials.
 - pg_hba.conf and pg_ident.conf are fully managed to avoid conflicting stale rules.
 - Durability settings keep fsync, full_page_writes, and synchronous_commit enabled by default.
 
 ## Operational Notes
 
+- Repeated runs with unchanged inputs are idempotent and do not reload or restart PostgreSQL.
+- Configuration changes reload the server; pending_restart or changed restart extras trigger a restart when required.
+- Configuration snippets and the main include directive use native module validation before writing. Module backups remain available.
+- HBA and Ident files have no separate preflight validation; PostgreSQL reads them during service start or reload.
+- Certificate issuance and deployment remain external responsibilities.
 - Defaults are tuned for a small dedicated 8 GB RAM / 4 vCPU VM on SSD-backed storage.
 - Per-object state=absent is supported only where the underlying community.postgresql module supports it cleanly.
 - The role does not orchestrate dependency-safe destructive cleanup across related PostgreSQL objects.
 - Logical replication copies DML changes, not DDL. Schema migrations must be orchestrated outside this role.
-- Debian and Ubuntu use postgresql-common cluster discovery via pg_lsclusters instead of static major-version maps.
+- Debian and Ubuntu use the package-provided main cluster and resolve its standard paths from pg_config --bindir.
 - TLS configuration settings are managed as PostgreSQL config values; certificate issuance and file deployment stay outside this role.
 
 ## Supported Platforms

@@ -1,5 +1,5 @@
 ---
-# role: jomrr.postgresql
+# role: postgresql
 # file: vars/Debian.yml
 
 __postgresql_packages:
@@ -8,9 +8,19 @@ __postgresql_packages:
   - libpq-dev
   - python3-psycopg2
 
-__postgresql_service_name: postgresql
+__postgresql_service_name: "postgresql@{{ __postgresql_major_version }}-{{ __postgresql_cluster_name }}"
 __postgresql_user: postgres
 __postgresql_group: postgres
 __postgresql_cluster_name: main
-__postgresql_pg_lsclusters_bin: /usr/bin/pg_lsclusters
+__postgresql_pg_config_bin: /usr/bin/pg_config
+__postgresql_bin_dir: "{{ __postgresql_pg_config.stdout }}"
+__postgresql_major_version: "{{ __postgresql_bin_dir | dirname | basename }}"
+__postgresql_data_dir: "/var/lib/postgresql/{{ __postgresql_major_version }}/{{ __postgresql_cluster_name }}"
+__postgresql_config_dir: "/etc/postgresql/{{ __postgresql_major_version }}/{{ __postgresql_cluster_name }}"
 __postgresql_cluster_provider: postgresql_common
+
+__postgresql_config_validate_command: >-
+  {{ __postgresql_bin_dir }}/postgres
+  -D {{ __postgresql_data_dir }}
+  -C config_file
+  -c config_file=%s

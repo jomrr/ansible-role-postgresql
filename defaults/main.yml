@@ -6,7 +6,7 @@
 # Role behavior
 ################################################################################
 
-# Suppress logs for PostgreSQL object tasks that may process credentials.
+# Suppress logs and diffs for PostgreSQL object and configuration tasks that may process credentials.
 postgresql_no_log: true
 
 ################################################################################
@@ -285,16 +285,11 @@ postgresql_pg_ident_entries: []
 # Host-based authentication
 ################################################################################
 
-# Entries rendered into the fully managed pg_hba.conf file.
+# Entries rendered into pg_hba.conf; the first rule preserves local postgres peer access.
 postgresql_hba_entries:
   - type: local
     database: all
     user: postgres
-    method: peer
-
-  - type: local
-    database: all
-    user: all
     method: peer
 
   - type: host

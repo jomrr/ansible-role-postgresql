@@ -17,7 +17,8 @@ argument_specs:
         required: false
         default: true
         description:
-          - Suppress logging for PostgreSQL object tasks that may contain credentials.
+          - Suppress logging and diffs for PostgreSQL object and configuration tasks that
+            may contain credentials.
       postgresql_listen_addresses:
         type: list
         elements: str
@@ -470,6 +471,22 @@ argument_specs:
         description:
           - Additional PostgreSQL settings expected to become effective after a reload.
           - Entries require name and value. The optional quote flag defaults to true.
+        options:
+          name:
+            type: str
+            required: true
+            description:
+              - PostgreSQL setting name.
+          value:
+            type: raw
+            required: true
+            description:
+              - Scalar PostgreSQL setting value.
+          quote:
+            type: bool
+            default: true
+            description:
+              - Quote the value as a PostgreSQL string.
       postgresql_config_extra_restart:
         type: list
         elements: dict
@@ -478,6 +495,22 @@ argument_specs:
         description:
           - Additional PostgreSQL settings expected to require a PostgreSQL restart.
           - Entries require name and value. The optional quote flag defaults to true.
+        options:
+          name:
+            type: str
+            required: true
+            description:
+              - PostgreSQL setting name.
+          value:
+            type: raw
+            required: true
+            description:
+              - Scalar PostgreSQL setting value.
+          quote:
+            type: bool
+            default: true
+            description:
+              - Quote the value as a PostgreSQL string.
       postgresql_pg_ident_entries:
         type: list
         elements: dict
@@ -485,6 +518,26 @@ argument_specs:
         default: []
         description:
           - Entries rendered into the fully managed pg_ident.conf file.
+        options:
+          map:
+            type: str
+            required: true
+            description:
+              - Identity map name.
+          system_user:
+            type: str
+            required: true
+            description:
+              - Operating system user or PostgreSQL regular expression.
+          database_user:
+            type: str
+            required: true
+            description:
+              - Mapped PostgreSQL user.
+          comment:
+            type: str
+            description:
+              - Optional rule comment.
       postgresql_hba_entries:
         type: list
         elements: dict
@@ -494,10 +547,6 @@ argument_specs:
             database: all
             user: postgres
             method: peer
-          - type: local
-            database: all
-            user: all
-            method: peer
           - type: host
             database: all
             user: all
@@ -505,6 +554,46 @@ argument_specs:
             method: scram-sha-256
         description:
           - Entries rendered into the fully managed pg_hba.conf file.
+          - The first entry must be local all postgres peer without authentication options.
+        options:
+          type:
+            type: str
+            required: true
+            choices:
+              - local
+              - host
+              - hostssl
+              - hostnossl
+            description:
+              - Connection type.
+          database:
+            type: str
+            required: true
+            description:
+              - Database selector.
+          user:
+            type: str
+            required: true
+            description:
+              - PostgreSQL user selector.
+          address:
+            type: str
+            description:
+              - Address selector; required for host rules and omitted for local rules.
+          method:
+            type: str
+            required: true
+            description:
+              - PostgreSQL authentication method.
+          options:
+            type: raw
+            default: []
+            description:
+              - Authentication options as a string or a list of strings.
+          comment:
+            type: str
+            description:
+              - Optional rule comment.
       postgresql_roles:
         type: list
         elements: dict
@@ -512,6 +601,104 @@ argument_specs:
         default: []
         description:
           - PostgreSQL roles and login users managed through per-object state.
+        options:
+          name:
+            type: str
+            description:
+              - Name of the user (role) to add or remove.
+            required: true
+          state:
+            type: str
+            choices:
+              - present
+              - absent
+            description:
+              - The user (role) state.
+            default: present
+          login_db:
+            type: str
+            description:
+              - Name of database to connect to and where user's permissions are granted.
+          password:
+            type: str
+            description:
+              - Set the user's password, before 1.4 this was required.
+            no_log: true
+          encrypted:
+            type: bool
+            description:
+              - Whether the password is stored hashed in the database.
+          role_attr_flags:
+            type: str
+            description:
+              - 'PostgreSQL user attributes string in the format: CREATEDB,CREATEROLE,SUPERUSER.'
+          conn_limit:
+            type: int
+            description:
+              - Specifies the user (role) connection limit.
+          expires:
+            type: str
+            description:
+              - The date at which the user's password is to expire.
+          comment:
+            type: str
+            description:
+              - Adds a comment on the user (equivalent to the C(COMMENT ON ROLE) statement).
+          configuration:
+            type: dict
+            description:
+              - Role-specific configuration parameters that would otherwise be set by C(ALTER
+                ROLE user SET variable TO value;).
+          reset_unspecified_configuration:
+            type: bool
+            description:
+              - If set to C(true), the user's default configuration parameters will be reset
+                in case they are not included in O(configuration), otherwise existing parameters
+                will not be modified if not included in O(configuration).
+          fail_on_user:
+            type: bool
+            description:
+              - If C(true), fails when the user (role) cannot be removed. Otherwise just
+                log and continue.
+          no_password_changes:
+            type: bool
+            description:
+              - If C(true), does not inspect the database for password changes. If the user
+                already exists, skips all password related checks. Useful when C(pg_authid)
+                is not accessible (such as in AWS RDS). Otherwise, makes password changes
+                as necessary.
+          login_unix_socket:
+            type: str
+            description:
+              - Unix socket directory for the management connection.
+          login_port:
+            type: int
+            description:
+              - Management port; defaults to postgresql_port.
+          login_user:
+            type: str
+            description:
+              - PostgreSQL management user.
+          login_password:
+            type: str
+            description:
+              - Password for the management connection.
+            no_log: true
+          login_host:
+            type: str
+            description:
+              - Host for the management connection.
+          ssl_mode:
+            type: str
+            choices:
+              - allow
+              - disable
+              - prefer
+              - require
+              - verify-ca
+              - verify-full
+            description:
+              - Determines how an SSL session is negotiated with the server.
       postgresql_memberships:
         type: list
         elements: dict
@@ -519,6 +706,72 @@ argument_specs:
         default: []
         description:
           - PostgreSQL role memberships managed through per-object state.
+        options:
+          groups:
+            type: list
+            elements: str
+            description:
+              - The list of groups (roles) that need to be granted to or revoked from I(target_roles).
+          group:
+            type: list
+            elements: str
+            description:
+              - Legacy spelling of groups.
+          target_roles:
+            type: list
+            elements: str
+            description:
+              - The list of target roles (groups will be granted to them).
+            required: true
+          state:
+            type: str
+            choices:
+              - present
+              - absent
+            description:
+              - Membership state.
+            default: present
+          fail_on_role:
+            type: bool
+            description:
+              - If C(true), fail when group or target_role doesn't exist. If C(false), just
+                warn and continue.
+          login_db:
+            type: str
+            description:
+              - Name of database to connect to.
+          login_unix_socket:
+            type: str
+            description:
+              - Unix socket directory for the management connection.
+          login_port:
+            type: int
+            description:
+              - Management port; defaults to postgresql_port.
+          login_user:
+            type: str
+            description:
+              - PostgreSQL management user.
+          login_password:
+            type: str
+            description:
+              - Password for the management connection.
+            no_log: true
+          login_host:
+            type: str
+            description:
+              - Host for the management connection.
+          ssl_mode:
+            type: str
+            choices:
+              - allow
+              - disable
+              - prefer
+              - require
+              - verify-ca
+              - verify-full
+            description:
+              - TLS mode for the management connection.
       postgresql_tablespaces:
         type: list
         elements: dict
@@ -526,6 +779,83 @@ argument_specs:
         default: []
         description:
           - PostgreSQL tablespaces managed through per-object state.
+        options:
+          name:
+            type: str
+            description:
+              - Name of the tablespace to add or remove.
+            required: true
+          state:
+            type: str
+            choices:
+              - present
+              - absent
+            description:
+              - Tablespace state.
+            default: present
+          location:
+            type: path
+            description:
+              - Path to the tablespace directory in the file system.
+          owner:
+            type: str
+            description:
+              - Name of the role to set as an owner of the tablespace.
+          set:
+            type: dict
+            description:
+              - Dict of tablespace options to set. Supported from PostgreSQL 9.0.
+          login_db:
+            type: str
+            description:
+              - Name of database to connect to and run queries against.
+          login_unix_socket:
+            type: str
+            description:
+              - Unix socket directory for the management connection.
+          login_port:
+            type: int
+            description:
+              - Management port; defaults to postgresql_port.
+          login_user:
+            type: str
+            description:
+              - PostgreSQL management user.
+          login_password:
+            type: str
+            description:
+              - Password for the management connection.
+            no_log: true
+          login_host:
+            type: str
+            description:
+              - Host for the management connection.
+          ssl_mode:
+            type: str
+            choices:
+              - allow
+              - disable
+              - prefer
+              - require
+              - verify-ca
+              - verify-full
+            description:
+              - TLS mode for the management connection.
+          directory_owner:
+            type: str
+            description:
+              - Tablespace directory owner; defaults to the PostgreSQL operating system
+                user.
+          directory_group:
+            type: str
+            description:
+              - Tablespace directory group; defaults to the PostgreSQL operating system
+                group.
+          directory_mode:
+            type: str
+            default: '0700'
+            description:
+              - Tablespace directory permissions.
       postgresql_databases:
         type: list
         elements: dict
@@ -533,6 +863,106 @@ argument_specs:
         default: []
         description:
           - PostgreSQL databases managed through per-object state.
+        options:
+          name:
+            type: str
+            description:
+              - Name of the database to add or remove.
+            required: true
+          state:
+            type: str
+            choices:
+              - present
+              - absent
+            description:
+              - The database state.
+            default: present
+          owner:
+            type: str
+            description:
+              - Name of the role to set as owner of the database.
+          encoding:
+            type: str
+            description:
+              - Encoding of the database.
+          lc_collate:
+            type: str
+            description:
+              - Collation order (LC_COLLATE) to use in the database must match collation
+                order of template database unless C(template0) is used as template.
+          lc_ctype:
+            type: str
+            description:
+              - Character classification (LC_CTYPE) to use in the database (e.g. lower,
+                upper, ...).
+          locale_provider:
+            type: str
+            description:
+              - Specifies the provider to use for the default collation in this database
+                (LOCALE_PROVIDER).
+          icu_locale:
+            type: str
+            description:
+              - Specifies the ICU locale (ICU_LOCALE) for the database default collation
+                order and character classification, overriding the setting locale.
+          template:
+            type: str
+            description:
+              - Template used to create the database.
+          tablespace:
+            type: path
+            description:
+              - The tablespace to set for the database U(https://www.postgresql.org/docs/current/sql-alterdatabase.html).
+          conn_limit:
+            type: str
+            description:
+              - Specifies the database connection limit.
+          comment:
+            type: str
+            description:
+              - Sets a comment on the database.
+          force:
+            type: bool
+            description:
+              - Used to forcefully drop a database when the I(state) is C(absent), ignored
+                otherwise.
+          maintenance_db:
+            type: str
+            description:
+              - The value specifies the initial database (which is also called as maintenance
+                DB) that Ansible connects to.
+          login_unix_socket:
+            type: str
+            description:
+              - Unix socket directory for the management connection.
+          login_port:
+            type: int
+            description:
+              - Management port; defaults to postgresql_port.
+          login_user:
+            type: str
+            description:
+              - PostgreSQL management user.
+          login_password:
+            type: str
+            description:
+              - Password for the management connection.
+            no_log: true
+          login_host:
+            type: str
+            description:
+              - Host for the management connection.
+          ssl_mode:
+            type: str
+            choices:
+              - allow
+              - disable
+              - prefer
+              - require
+              - verify-ca
+              - verify-full
+            description:
+              - TLS mode for the management connection.
       postgresql_extensions:
         type: list
         elements: dict
@@ -540,6 +970,76 @@ argument_specs:
         default: []
         description:
           - PostgreSQL extensions managed through per-object state in their target database.
+        options:
+          name:
+            type: str
+            description:
+              - Name of the extension to add or remove.
+            required: true
+          state:
+            type: str
+            choices:
+              - present
+              - absent
+            description:
+              - The database extension state.
+            default: present
+          database:
+            type: str
+            description:
+              - Name of the database to add or remove the extension to/from.
+            required: true
+          schema:
+            type: str
+            description:
+              - Name of the schema to add the extension to.
+          version:
+            type: str
+            description:
+              - Extension version to add or update to. Has effect with I(state=present)
+                only.
+          cascade:
+            type: bool
+            description:
+              - Automatically install/remove any extensions that this extension depends
+                on that are not already installed/removed (supported since PostgreSQL 9.6).
+          comment:
+            type: str
+            description:
+              - Sets a comment on the extension.
+          login_unix_socket:
+            type: str
+            description:
+              - Path to a Unix domain socket for local connections.
+          login_port:
+            type: int
+            description:
+              - Management port; defaults to postgresql_port.
+          login_user:
+            type: str
+            description:
+              - PostgreSQL management user.
+          login_password:
+            type: str
+            description:
+              - Password for the management connection.
+            no_log: true
+          login_host:
+            type: str
+            description:
+              - Host for the management connection.
+          ssl_mode:
+            type: str
+            choices:
+              - allow
+              - disable
+              - prefer
+              - require
+              - verify-ca
+              - verify-full
+            description:
+              - Determines whether or with what priority a secure SSL TCP/IP connection
+                will be negotiated with the server.
       postgresql_publications:
         type: list
         elements: dict
@@ -548,6 +1048,94 @@ argument_specs:
         description:
           - Logical replication publications managed through per-object state in their source
             database.
+        options:
+          name:
+            type: str
+            description:
+              - Name of the publication to add, update, or remove.
+            required: true
+          state:
+            type: str
+            choices:
+              - present
+              - absent
+            description:
+              - The publication state.
+            default: present
+          database:
+            type: str
+            description:
+              - Name of the database to connect to and where the publication state will
+                be changed.
+            required: true
+          owner:
+            type: str
+            description:
+              - Publication owner.
+          tables:
+            type: list
+            elements: str
+            description:
+              - List of tables to add to the publication.
+          tables_in_schema:
+            type: list
+            elements: str
+            description:
+              - Specifies a list of schemas to add to the publication to replicate changes
+                for all tables in those schemas.
+          columns:
+            type: dict
+            description:
+              - List of tables and its columns to add to the publication.
+          rowfilters:
+            type: dict
+            description:
+              - Optional dictionary of row filters to apply to I(tables) or I(columns) of
+                the publication.
+          parameters:
+            type: dict
+            description:
+              - Dictionary with optional publication parameters.
+          comment:
+            type: str
+            description:
+              - Sets a comment on the publication.
+          cascade:
+            type: bool
+            description:
+              - Drop publication dependencies. Has effect with I(state=absent) only.
+          login_unix_socket:
+            type: str
+            description:
+              - Unix socket directory for the management connection.
+          login_port:
+            type: int
+            description:
+              - Management port; defaults to postgresql_port.
+          login_user:
+            type: str
+            description:
+              - PostgreSQL management user.
+          login_password:
+            type: str
+            description:
+              - Password for the management connection.
+            no_log: true
+          login_host:
+            type: str
+            description:
+              - Host for the management connection.
+          ssl_mode:
+            type: str
+            choices:
+              - allow
+              - disable
+              - prefer
+              - require
+              - verify-ca
+              - verify-full
+            description:
+              - TLS mode for the management connection.
       postgresql_subscriptions:
         type: list
         elements: dict
@@ -556,3 +1144,78 @@ argument_specs:
         description:
           - Logical replication subscriptions managed through per-object state in their
             local database.
+        options:
+          name:
+            type: str
+            description:
+              - Name of the subscription to add, update, or remove.
+            required: true
+          state:
+            type: str
+            choices:
+              - present
+              - absent
+            description:
+              - The subscription state.
+            default: present
+          database:
+            type: str
+            description:
+              - Name of the database to connect to and where the subscription state will
+                be changed.
+            required: true
+          connparams:
+            type: dict
+            description:
+              - The connection dict param-value to connect to the publisher.
+            no_log: true
+          publications:
+            type: list
+            elements: str
+            description:
+              - The publication names on the publisher to use for the subscription.
+          owner:
+            type: str
+            description:
+              - Subscription owner.
+          subsparams:
+            type: dict
+            description:
+              - Dictionary of optional parameters for a subscription, e.g. copy_data, enabled,
+                create_slot, etc.
+          cascade:
+            type: bool
+            description:
+              - Drop subscription dependencies. Has effect with I(state=absent) only.
+          login_unix_socket:
+            type: str
+            description:
+              - Unix socket directory for the management connection.
+          login_port:
+            type: int
+            description:
+              - Management port; defaults to postgresql_port.
+          login_user:
+            type: str
+            description:
+              - PostgreSQL management user.
+          login_password:
+            type: str
+            description:
+              - Password for the management connection.
+            no_log: true
+          login_host:
+            type: str
+            description:
+              - Host for the management connection.
+          ssl_mode:
+            type: str
+            choices:
+              - allow
+              - disable
+              - prefer
+              - require
+              - verify-ca
+              - verify-full
+            description:
+              - TLS mode for the management connection.

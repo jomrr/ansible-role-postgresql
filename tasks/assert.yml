@@ -2,87 +2,76 @@
 # role: postgresql
 # file: tasks/assert.yml
 
-- name: "PostgreSQL | Assert platform variables are available"
+- name: "POSTGRESQL | Assert extra configuration contents"
   ansible.builtin.assert:
     that:
-      - __postgresql_packages is defined
-      - __postgresql_service_name is defined
-      - __postgresql_user is defined
-      - __postgresql_group is defined
-      - __postgresql_cluster_provider is defined
-      - __postgresql_cluster_provider in ['postgresql_common', 'postgresql_setup', 'initdb']
-    fail_msg: "No complete PostgreSQL platform variables found for OS family {{ ansible_facts['os_family'] }}."
+      - item.name is match('^[A-Za-z][A-Za-z0-9_.]*$')
+      - item.value is string or item.value is number or item.value is boolean
+      - "'\n' not in item.value | string and '\r' not in item.value | string"
+    quiet: true
+    fail_msg: "Extra settings require a valid PostgreSQL name and a single-line scalar value."
+  loop: "{{ postgresql_config_extra_reload + postgresql_config_extra_restart }}"
+  loop_control:
+    label: "{{ item.name }}"
+  no_log: "{{ postgresql_no_log | bool }}"
   tags:
-    - postgresql_vars
     - postgresql_validate
 
-- name: "PostgreSQL | Assert object state values are supported"
+- name: "POSTGRESQL | Assert connection and WAL settings are compatible"
   ansible.builtin.assert:
     that:
-      - _postgresql_invalid_object_states | length == 0
+      - postgresql_port >= 1
+      - postgresql_port <= 65535
+      - __postgresql_reserved_connections | int < __postgresql_max_connections | int
+      - __postgresql_wal_level != 'minimal' or __postgresql_wal_senders | int == 0
+      - __postgresql_wal_level != 'minimal' or __postgresql_archive_mode | string | lower in ['off', 'false', '0', 'no']
+      - __postgresql_wal_level != 'minimal' or __postgresql_summarize_wal | string | lower in ['off', 'false', '0', 'no']
+    quiet: true
     fail_msg: >-
-      PostgreSQL runtime object state values must be either present or absent when defined.
-      Global teardown, purge, or dependency-aware cleanup is not part of the role contract.
-  vars:
-    _postgresql_runtime_objects: >-
-      {{
-        postgresql_roles
-        + postgresql_memberships
-        + postgresql_tablespaces
-        + postgresql_databases
-        + postgresql_extensions
-        + postgresql_publications
-        + postgresql_subscriptions
-      }}
-    _postgresql_invalid_object_states: >-
-      {{
-        _postgresql_runtime_objects
-        | selectattr('state', 'defined')
-        | rejectattr('state', 'equalto', 'present')
-        | rejectattr('state', 'equalto', 'absent')
-        | list
-      }}
+      PostgreSQL requires a valid port, fewer reserved connections than max_connections,
+      and no WAL senders, archiving or summarization with wal_level=minimal.
   tags:
     - postgresql_validate
-    - postgresql_objects
 
-- name: "PostgreSQL | Assert extra configuration entries are valid"
+- name: "POSTGRESQL | Assert local maintenance access remains available"
   ansible.builtin.assert:
     that:
-      - _postgresql_extra_config_missing_names | length == 0
-      - _postgresql_extra_config_missing_values | length == 0
-      - _postgresql_extra_config_invalid_names | length == 0
-    fail_msg: >-
-      Extra PostgreSQL configuration entries must define name and value, and names may
-      only contain letters, digits, underscores, and dots. Invalid entries:
-      {{
-        (
-          _postgresql_extra_config_missing_names
-          + _postgresql_extra_config_missing_values
-          + _postgresql_extra_config_invalid_names
-        ) | to_json
-      }}
-  vars:
-    _postgresql_extra_config_entries: "{{ postgresql_config_extra_reload + postgresql_config_extra_restart }}"
-    _postgresql_extra_config_missing_names: >-
-      {{
-        _postgresql_extra_config_entries
-        | rejectattr('name', 'defined')
-        | list
-      }}
-    _postgresql_extra_config_missing_values: >-
-      {{
-        _postgresql_extra_config_entries
-        | rejectattr('value', 'defined')
-        | list
-      }}
-    _postgresql_extra_config_invalid_names: >-
-      {{
-        _postgresql_extra_config_entries
-        | selectattr('name', 'defined')
-        | rejectattr('name', 'match', '^[A-Za-z0-9_.]+$')
-        | list
-      }}
+      - postgresql_hba_entries | length > 0
+      - postgresql_hba_entries[0].type == 'local'
+      - postgresql_hba_entries[0].database == 'all'
+      - postgresql_hba_entries[0].user == 'postgres'
+      - postgresql_hba_entries[0].method == 'peer'
+      - postgresql_hba_entries[0].get('options', []) | length == 0
+    quiet: true
+    fail_msg: "The first HBA entry must be local all postgres peer without authentication options."
+  no_log: "{{ postgresql_no_log | bool }}"
   tags:
     - postgresql_validate
-    - postgresql_config
+
+- name: "POSTGRESQL | Assert HBA rule dependencies"
+  ansible.builtin.assert:
+    that:
+      - (item.type == 'local') == (item.address is not defined)
+      - item.get('options', []) is string or item.get('options', []) is sequence and item.get('options', []) is not mapping
+      - item.get('options', []) is string or item.get('options', []) | reject('string') | list | length == 0
+    quiet: true
+    fail_msg: "Host rules require an address; local rules must omit it. Authentication options must be strings."
+  loop: "{{ postgresql_hba_entries }}"
+  loop_control:
+    label: "{{ item.type }} {{ item.database }} {{ item.user }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  tags:
+    - postgresql_validate
+
+- name: "POSTGRESQL | Assert membership group selection"
+  ansible.builtin.assert:
+    that:
+      - item.groups is defined or item.group is defined
+    quiet: true
+    fail_msg: "Memberships require groups or the legacy group spelling."
+  loop: "{{ postgresql_memberships }}"
+  loop_control:
+    label: "{{ item.target_roles | join(', ') }}"
+  no_log: "{{ postgresql_no_log | bool }}"
+  tags:
+    - postgresql_validate

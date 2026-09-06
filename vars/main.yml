@@ -1,33 +1,41 @@
 ---
-# role: jomrr.postgresql
+# role: postgresql
 # file: vars/main.yml
 
-__postgresql_config_restart_templates:
+__postgresql_config_templates:
   - src: conf.d/10-connection.conf.j2
     dest: 10-connection.conf
+  - src: conf.d/15-ssl.conf.j2
+    dest: 15-ssl.conf
   - src: conf.d/20-memory.conf.j2
     dest: 20-memory.conf
   - src: conf.d/30-wal.conf.j2
     dest: 30-wal.conf
-  - src: conf.d/60-logging.conf.j2
-    dest: 60-logging.conf
-  - src: conf.d/91-extra-restart.conf.j2
-    dest: 91-extra-restart.conf
-
-__postgresql_config_reload_templates:
-  - src: conf.d/15-ssl.conf.j2
-    dest: 15-ssl.conf
   - src: conf.d/40-autovacuum.conf.j2
     dest: 40-autovacuum.conf
   - src: conf.d/50-planner.conf.j2
     dest: 50-planner.conf
+  - src: conf.d/60-logging.conf.j2
+    dest: 60-logging.conf
   - src: conf.d/70-locale.conf.j2
     dest: 70-locale.conf
   - src: conf.d/90-extra-reload.conf.j2
     dest: 90-extra-reload.conf
 
-__postgresql_config_validate_command: >-
-  {{ __postgresql_bin_dir }}/postgres
-  -D {{ __postgresql_data_dir }}
-  -C config_file
-  -c config_file=%s
+# Use the current endpoint until PostgreSQL applies a port change.
+__postgresql_running: "{{ __postgresql_runtime_status.rc == 0 }}"
+__postgresql_login_port: "{{ __postgresql_endpoint.stdout_lines[0] if __postgresql_running else postgresql_port }}"
+__postgresql_login_socket: "{{ __postgresql_endpoint.stdout_lines[1] if __postgresql_running else omit }}"
+
+# Extra files override declared settings in file order; restart extras are read last.
+__postgresql_extra_settings: >-
+  {{ (postgresql_config_extra_reload + postgresql_config_extra_restart)
+     | items2dict(key_name='name', value_name='value') }}
+__postgresql_max_connections: "{{ __postgresql_extra_settings.get('max_connections', postgresql_max_connections) }}"
+__postgresql_reserved_connections: >-
+  {{ __postgresql_extra_settings.get('superuser_reserved_connections', postgresql_superuser_reserved_connections) | int
+     + __postgresql_extra_settings.get('reserved_connections', 0) | int }}
+__postgresql_wal_level: "{{ __postgresql_extra_settings.get('wal_level', postgresql_wal_level) }}"
+__postgresql_wal_senders: "{{ __postgresql_extra_settings.get('max_wal_senders', postgresql_max_wal_senders) }}"
+__postgresql_archive_mode: "{{ __postgresql_extra_settings.get('archive_mode', 'off') }}"
+__postgresql_summarize_wal: "{{ __postgresql_extra_settings.get('summarize_wal', 'off') }}"

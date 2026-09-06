@@ -1,125 +1,63 @@
+---
 # role: postgresql
 # file: molecule/resources/playbooks/verify.yml
 
-- name: "Molecule | verify | postgresql"
+- name: "POSTGRESQL | Verify managed PostgreSQL behavior"
   hosts: all
   gather_facts: false
-  vars:
-    postgresql_molecule_expected_port: 5433
+  become: true
+  become_user: postgres
+  module_defaults:
+    community.postgresql.postgresql_query:
+      login_db: postgres
+      login_user: postgres
+      login_port: 5433
   tasks:
-    - name: "PostgreSQL | Check psql is available"
-      ansible.builtin.command:
-        cmd: psql --version
+    - name: "POSTGRESQL | Read effective configuration and object state"
+      community.postgresql.postgresql_query:
+        query: >-
+          SELECT current_setting('port')::int AS port,
+                 current_setting('statement_timeout') AS statement_timeout,
+                 current_setting('lock_timeout') AS lock_timeout,
+                 current_setting('max_prepared_transactions')::int AS prepared,
+                 current_setting('max_locks_per_transaction')::int AS locks,
+                 pg_has_role('app', 'readonly', 'member') AS membership,
+                 (SELECT pg_tablespace_location(oid) FROM pg_tablespace
+                  WHERE spcname = 'molecule_space') AS tablespace,
+                 (SELECT count(*) FROM pg_file_settings WHERE error IS NOT NULL)
+                 + (SELECT count(*) FROM pg_hba_file_rules WHERE error IS NOT NULL)
+                 + (SELECT count(*) FROM pg_ident_file_mappings WHERE error IS NOT NULL)
+                 + (SELECT count(*) FROM pg_settings WHERE pending_restart) AS errors
+      register: __postgresql_verified
       changed_when: false
 
-    - name: "PostgreSQL | Check PostgreSQL service facts"
-      ansible.builtin.service_facts:
-
-    - name: "PostgreSQL | Assert PostgreSQL service is known"
+    - name: "POSTGRESQL | Assert managed configuration and objects are effective"
       ansible.builtin.assert:
         that:
-          - ansible_facts.services | dict2items | selectattr('key', 'match', '^postgresql') | list | length > 0
-        fail_msg: "No PostgreSQL service was detected."
+          - __postgresql_verified.query_result[0].port == 5433
+          - __postgresql_verified.query_result[0].statement_timeout == '30s'
+          - __postgresql_verified.query_result[0].lock_timeout == '5s'
+          - __postgresql_verified.query_result[0].prepared == 10
+          - __postgresql_verified.query_result[0].locks == 128
+          - __postgresql_verified.query_result[0].membership
+          - __postgresql_verified.query_result[0].tablespace == '/var/lib/pgsql/molecule-tablespace'
+          - __postgresql_verified.query_result[0].errors == 0
+        quiet: true
 
-    - name: "PostgreSQL | Check local postgres connection"
-      become: true
-      become_user: postgres
-      ansible.builtin.command:
-        cmd: >-
-          psql
-          -p {{ postgresql_molecule_expected_port }}
-          -XAtqc
-          "SELECT 1"
+    - name: "POSTGRESQL | Connect through the managed identity mapping"
+      become_user: root
+      community.postgresql.postgresql_query:
+        login_db: appdb
+        login_user: app
+        query: >-
+          SELECT current_user AS username,
+                 EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto') AS extension
+      register: __postgresql_mapped_connection
       changed_when: false
 
-    - name: "PostgreSQL | Assert managed port"
-      become: true
-      become_user: postgres
-      ansible.builtin.command:
-        cmd: >-
-          psql
-          -p {{ postgresql_molecule_expected_port }}
-          -XAtqc
-          "SHOW port"
-      register: __postgresql_show_port
-      changed_when: false
-      failed_when: __postgresql_show_port.stdout | int != postgresql_molecule_expected_port
-
-    - name: "PostgreSQL | Assert no file settings errors"
-      become: true
-      become_user: postgres
-      ansible.builtin.command:
-        cmd: >-
-          psql
-          -p {{ postgresql_molecule_expected_port }}
-          -XAtqc
-          "SELECT count(*) FROM pg_file_settings WHERE error IS NOT NULL"
-      register: __postgresql_file_settings_errors
-      changed_when: false
-      failed_when: __postgresql_file_settings_errors.stdout | int > 0
-
-    - name: "PostgreSQL | Assert no pg_hba.conf errors"
-      become: true
-      become_user: postgres
-      ansible.builtin.command:
-        cmd: >-
-          psql
-          -p {{ postgresql_molecule_expected_port }}
-          -XAtqc
-          "SELECT count(*) FROM pg_hba_file_rules WHERE error IS NOT NULL"
-      register: __postgresql_hba_errors
-      changed_when: false
-      failed_when: __postgresql_hba_errors.stdout | int > 0
-
-    - name: "PostgreSQL | Assert no pg_ident.conf errors"
-      become: true
-      become_user: postgres
-      ansible.builtin.command:
-        cmd: >-
-          psql
-          -p {{ postgresql_molecule_expected_port }}
-          -XAtqc
-          "SELECT count(*) FROM pg_ident_file_mappings WHERE error IS NOT NULL"
-      register: __postgresql_ident_errors
-      changed_when: false
-      failed_when: __postgresql_ident_errors.stdout | int > 0
-
-    - name: "PostgreSQL | Assert managed role exists"
-      become: true
-      become_user: postgres
-      ansible.builtin.command:
-        cmd: >-
-          psql
-          -p {{ postgresql_molecule_expected_port }}
-          -XAtqc
-          "SELECT count(*) FROM pg_roles WHERE rolname = 'app'"
-      register: __postgresql_app_role_count
-      changed_when: false
-      failed_when: __postgresql_app_role_count.stdout | int != 1
-
-    - name: "PostgreSQL | Assert managed database exists"
-      become: true
-      become_user: postgres
-      ansible.builtin.command:
-        cmd: >-
-          psql
-          -p {{ postgresql_molecule_expected_port }}
-          -XAtqc
-          "SELECT count(*) FROM pg_database WHERE datname = 'appdb'"
-      register: __postgresql_appdb_count
-      changed_when: false
-      failed_when: __postgresql_appdb_count.stdout | int != 1
-
-    - name: "PostgreSQL | Assert managed extension exists"
-      become: true
-      become_user: postgres
-      ansible.builtin.command:
-        cmd: >-
-          psql
-          -p {{ postgresql_molecule_expected_port }}
-          -d appdb
-          -XAtqc
-          "SELECT count(*) FROM pg_extension WHERE extname = 'pgcrypto'"
-      register: __postgresql_pgcrypto_count
-      changed_when: false
-      failed_when: __postgresql_pgcrypto_count.stdout | int != 1
+    - name: "POSTGRESQL | Assert mapped login and extension are usable"
+      ansible.builtin.assert:
+        that:
+          - __postgresql_mapped_connection.query_result[0].username == 'app'
+          - __postgresql_mapped_connection.query_result[0].extension
+        quiet: true

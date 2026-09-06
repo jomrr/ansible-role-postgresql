@@ -1,0 +1,63 @@
+---
+# role: postgresql
+# file: molecule/resources/playbooks/side_effect.yml
+
+- name: "POSTGRESQL | Exercise changes on an existing cluster"
+  hosts: all
+  gather_facts: true
+  module_defaults:
+    community.postgresql.postgresql_query:
+      login_db: postgres
+      login_user: postgres
+      login_port: 5433
+  tasks:
+    - name: "POSTGRESQL | Record server start time"
+      become: true
+      become_user: postgres
+      community.postgresql.postgresql_query:
+        query: SELECT pg_postmaster_start_time()::text AS started
+      register: __postgresql_before_change
+      changed_when: false
+
+    - name: "POSTGRESQL | Change reloadable memory setting"
+      ansible.builtin.include_role:
+        name: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}"
+      vars:
+        postgresql_work_mem: "8MB"
+
+    - name: "POSTGRESQL | Read changed memory setting and server start time"
+      become: true
+      become_user: postgres
+      community.postgresql.postgresql_query:
+        query: SELECT current_setting('work_mem') AS work_mem, pg_postmaster_start_time()::text AS started
+      register: __postgresql_after_reload
+      changed_when: false
+
+    - name: "POSTGRESQL | Assert memory changed without a restart"
+      ansible.builtin.assert:
+        that:
+          - __postgresql_after_reload.query_result[0].work_mem == '8MB'
+          - __postgresql_after_reload.query_result[0].started == __postgresql_before_change.query_result[0].started
+        quiet: true
+
+    - name: "POSTGRESQL | Change the port of the running cluster"
+      ansible.builtin.include_role:
+        name: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}"
+      vars:
+        postgresql_port: 5434
+        postgresql_work_mem: "8MB"
+
+    - name: "POSTGRESQL | Connect at the changed port"
+      become: true
+      become_user: postgres
+      community.postgresql.postgresql_query:
+        login_port: 5434
+        query: SELECT pg_postmaster_start_time()::text AS started
+      register: __postgresql_after_restart
+      changed_when: false
+
+    - name: "POSTGRESQL | Assert the port change restarted PostgreSQL"
+      ansible.builtin.assert:
+        that:
+          - __postgresql_after_restart.query_result[0].started != __postgresql_before_change.query_result[0].started
+        quiet: true

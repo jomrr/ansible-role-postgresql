@@ -1,8 +1,8 @@
 ---
 # role: postgresql
-# file: tasks/objects.yml
+# file: tasks/pg_objects.yml
 
-- name: "PostgreSQL | Manage roles"
+- name: "POSTGRESQL | Manage roles"
   become: true
   become_user: "{{ __postgresql_user }}"
   no_log: "{{ postgresql_no_log | bool }}"
@@ -33,7 +33,7 @@
     - postgresql_roles
     - postgresql_objects
 
-- name: "PostgreSQL | Manage role memberships"
+- name: "POSTGRESQL | Manage role memberships"
   become: true
   become_user: "{{ __postgresql_user }}"
   no_log: "{{ postgresql_no_log | bool }}"
@@ -56,7 +56,8 @@
     - postgresql_memberships
     - postgresql_objects
 
-- name: "PostgreSQL | Ensure tablespace directories exist"
+- name: "POSTGRESQL | Ensure tablespace directories exist"
+  no_log: "{{ postgresql_no_log | bool }}"
   ansible.builtin.file:
     path: "{{ item.location }}"
     state: directory
@@ -71,7 +72,7 @@
     - postgresql_tablespaces
     - postgresql_objects
 
-- name: "PostgreSQL | Manage tablespaces"
+- name: "POSTGRESQL | Manage tablespaces"
   become: true
   become_user: "{{ __postgresql_user }}"
   no_log: "{{ postgresql_no_log | bool }}"
@@ -95,7 +96,7 @@
     - postgresql_tablespaces
     - postgresql_objects
 
-- name: "PostgreSQL | Manage databases"
+- name: "POSTGRESQL | Manage databases"
   become: true
   become_user: "{{ __postgresql_user }}"
   no_log: "{{ postgresql_no_log | bool }}"
@@ -127,7 +128,7 @@
     - postgresql_databases
     - postgresql_objects
 
-- name: "PostgreSQL | Manage extensions"
+- name: "POSTGRESQL | Manage extensions"
   become: true
   become_user: "{{ __postgresql_user }}"
   no_log: "{{ postgresql_no_log | bool }}"
@@ -152,7 +153,7 @@
     - postgresql_extensions
     - postgresql_objects
 
-- name: "PostgreSQL | Manage logical replication publications"
+- name: "POSTGRESQL | Manage logical replication publications"
   become: true
   become_user: "{{ __postgresql_user }}"
   no_log: "{{ postgresql_no_log | bool }}"
@@ -181,7 +182,7 @@
     - postgresql_publications
     - postgresql_objects
 
-- name: "PostgreSQL | Manage logical replication subscriptions"
+- name: "POSTGRESQL | Manage logical replication subscriptions"
   become: true
   become_user: "{{ __postgresql_user }}"
   no_log: "{{ postgresql_no_log | bool }}"

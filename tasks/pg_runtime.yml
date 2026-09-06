@@ -1,0 +1,59 @@
+---
+# role: postgresql
+# file: tasks/pg_runtime.yml
+
+- name: "POSTGRESQL | Read PostgreSQL version"
+  ansible.builtin.command:
+    argv:
+      - "{{ __postgresql_bin_dir }}/postgres"
+      - --version
+  register: __postgresql_version
+  changed_when: false
+  check_mode: false
+
+- name: "POSTGRESQL | Assert PostgreSQL 15 or newer is installed"
+  ansible.builtin.assert:
+    that:
+      - __postgresql_version.stdout | regex_search('[0-9]+') | int >= 15
+    quiet: true
+    fail_msg: "This role requires PostgreSQL 15 or newer."
+
+- name: "POSTGRESQL | Read cluster runtime status"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  ansible.builtin.command:
+    argv:
+      - "{{ __postgresql_bin_dir }}/pg_ctl"
+      - -D
+      - "{{ __postgresql_data_dir }}"
+      - status
+  register: __postgresql_runtime_status
+  changed_when: false
+  failed_when: __postgresql_runtime_status.rc not in [0, 3]
+  check_mode: false
+
+# Read the running endpoint, which remains in use until a port change is restarted.
+- name: "POSTGRESQL | Read running cluster endpoint"
+  ansible.builtin.command:
+    argv:
+      - sed
+      - -n
+      - 4,5p
+      - "{{ __postgresql_data_dir }}/postmaster.pid"
+  register: __postgresql_endpoint
+  changed_when: false
+  check_mode: false
+  when: __postgresql_running
+
+- name: "POSTGRESQL | Check existing local maintenance access"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  community.postgresql.postgresql_query:
+    login_db: postgres
+    login_user: postgres
+    login_port: "{{ __postgresql_login_port }}"
+    login_unix_socket: "{{ __postgresql_login_socket }}"
+    query: SELECT 1
+  changed_when: false
+  check_mode: false
+  when: __postgresql_running

@@ -1,0 +1,58 @@
+---
+# role: postgresql
+# file: tasks/pg_config.yml
+
+- name: "POSTGRESQL | Ensure managed configuration directory exists"
+  ansible.builtin.file:
+    path: "{{ __postgresql_config_dir }}/conf.d"
+    state: directory
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0750"
+
+- name: "POSTGRESQL | Ensure PostgreSQL includes managed configuration directory"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  ansible.builtin.lineinfile:
+    path: "{{ __postgresql_config_dir }}/postgresql.conf"
+    regexp: '^#?include_dir\s*=.*$'
+    line: "include_dir = '{{ __postgresql_config_dir }}/conf.d'"
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0600"
+    backup: true
+    validate: "{{ __postgresql_config_validate_command }}"
+  notify: Apply postgresql configuration
+  no_log: "{{ postgresql_no_log | bool }}"
+
+- name: "POSTGRESQL | Configure settings"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ __postgresql_config_dir }}/conf.d/{{ item.dest }}"
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0600"
+    backup: true
+    validate: "{{ __postgresql_config_validate_command }}"
+  loop: "{{ __postgresql_config_templates }}"
+  loop_control:
+    label: "{{ item.dest }}"
+  notify: Apply postgresql configuration
+  no_log: "{{ postgresql_no_log | bool }}"
+
+- name: "POSTGRESQL | Configure explicitly restart-required settings"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  ansible.builtin.template:
+    src: conf.d/91-extra-restart.conf.j2
+    dest: "{{ __postgresql_config_dir }}/conf.d/91-extra-restart.conf"
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0600"
+    backup: true
+    validate: "{{ __postgresql_config_validate_command }}"
+  register: __postgresql_extra_restart_result
+  notify: Apply postgresql configuration
+  no_log: "{{ postgresql_no_log | bool }}"

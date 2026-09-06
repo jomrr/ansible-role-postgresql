@@ -1,5 +1,5 @@
 ---
-# role: jomrr.postgresql
+# role: postgresql
 # file: vars/RedHat.yml
 
 __postgresql_packages:
@@ -17,3 +17,9 @@ __postgresql_config_dir: /var/lib/pgsql/data
 __postgresql_bin_dir: /usr/bin
 __postgresql_setup_bin: /usr/bin/postgresql-setup
 __postgresql_cluster_provider: postgresql_setup
+
+__postgresql_config_validate_command: >-
+  {{ __postgresql_bin_dir }}/postgres
+  -D {{ __postgresql_data_dir }}
+  -C config_file
+  -c config_file=%s

@@ -1,21 +1,22 @@
-{{ ansible_managed | comment }}
+# Managed by ansible.
+# file: {{ template_destpath }}
 
 # TYPE  DATABASE        USER            ADDRESS                 METHOD          OPTIONS
 {% for entry in postgresql_hba_entries %}
-{% set _postgresql_hba_options = entry.options | default([]) %}
-{% if _postgresql_hba_options is string %}
-{% set _postgresql_hba_options_text = _postgresql_hba_options %}
+{% set __postgresql_hba_options = entry.options | default([]) %}
+{% if __postgresql_hba_options is string %}
+{% set __postgresql_hba_options_text = __postgresql_hba_options %}
 {% else %}
-{% set _postgresql_hba_options_text = _postgresql_hba_options | join(' ') %}
+{% set __postgresql_hba_options_text = __postgresql_hba_options | join(' ') %}
 {% endif %}
-{% set _postgresql_hba_fields = [entry.type, entry.database, entry.user] %}
+{% set __postgresql_hba_fields = [entry.type, entry.database, entry.user] %}
 {% if entry.address is defined %}
-{% set _postgresql_hba_fields = _postgresql_hba_fields + [entry.address] %}
+{% set __postgresql_hba_fields = __postgresql_hba_fields + [entry.address] %}
 {% endif %}
-{% set _postgresql_hba_fields = _postgresql_hba_fields + [entry.method] %}
-{% if _postgresql_hba_options_text | length > 0 %}
-{% set _postgresql_hba_fields = _postgresql_hba_fields + [_postgresql_hba_options_text] %}
+{% set __postgresql_hba_fields = __postgresql_hba_fields + [entry.method] %}
+{% if __postgresql_hba_options_text | length > 0 %}
+{% set __postgresql_hba_fields = __postgresql_hba_fields + [__postgresql_hba_options_text] %}
 {% endif %}
-{% set _postgresql_hba_comment = (' # ' ~ entry.comment) if entry.comment is defined else '' %}
-{{ _postgresql_hba_fields | join(' ') }}{{ _postgresql_hba_comment }}
+{% set __postgresql_hba_comment = (' # ' ~ entry.comment) if entry.comment is defined else '' %}
+{{ __postgresql_hba_fields | join(' ') }}{{ __postgresql_hba_comment }}
 {% endfor %}
