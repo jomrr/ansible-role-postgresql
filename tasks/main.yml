@@ -67,13 +67,5 @@
 
 - name: "POSTGRESQL | Manage runtime objects"
   ansible.builtin.import_tasks: pg_objects.yml
-  when: >
-    postgresql_roles | length > 0 or
-    postgresql_memberships | length > 0 or
-    postgresql_tablespaces | length > 0 or
-    postgresql_databases | length > 0 or
-    postgresql_extensions | length > 0 or
-    postgresql_publications | length > 0 or
-    postgresql_subscriptions | length > 0
   tags:
     - postgresql_objects

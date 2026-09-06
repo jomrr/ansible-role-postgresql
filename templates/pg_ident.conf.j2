@@ -2,7 +2,7 @@
 # file: {{ template_destpath }}
 
 # MAPNAME       SYSTEM-USERNAME         PG-USERNAME
-{% for entry in postgresql_pg_ident_entries %}
-{% set __postgresql_pg_ident_comment = (' # ' ~ entry.comment) if entry.comment is defined else '' %}
-{{ entry.map }} {{ entry.system_user }} {{ entry.database_user }}{{ __postgresql_pg_ident_comment }}
+{% for __postgresql_entry in postgresql_pg_ident_entries %}
+{% set __postgresql_pg_ident_comment = (' # ' ~ __postgresql_entry.comment) if __postgresql_entry.comment is defined else '' %}
+{{ __postgresql_entry.map }} {{ __postgresql_entry.system_user }} {{ __postgresql_entry.database_user }}{{ __postgresql_pg_ident_comment }}
 {% endfor %}

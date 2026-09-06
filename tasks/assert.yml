@@ -5,14 +5,15 @@
 - name: "POSTGRESQL | Assert extra configuration contents"
   ansible.builtin.assert:
     that:
-      - item.name is match('^[A-Za-z][A-Za-z0-9_.]*$')
-      - item.value is string or item.value is number or item.value is boolean
-      - "'\n' not in item.value | string and '\r' not in item.value | string"
+      - __postgresql_entry.name is match('^[A-Za-z][A-Za-z0-9_.]*$')
+      - __postgresql_entry.value is string or __postgresql_entry.value is number or __postgresql_entry.value is boolean
+      - "'\n' not in __postgresql_entry.value | string and '\r' not in __postgresql_entry.value | string"
     quiet: true
     fail_msg: "Extra settings require a valid PostgreSQL name and a single-line scalar value."
   loop: "{{ postgresql_config_extra_reload + postgresql_config_extra_restart }}"
   loop_control:
-    label: "{{ item.name }}"
+    loop_var: __postgresql_entry
+    label: "{{ __postgresql_entry.name }}"
   no_log: "{{ postgresql_no_log | bool }}"
   tags:
     - postgresql_validate
@@ -44,34 +45,39 @@
       - postgresql_hba_entries[0].get('options', []) | length == 0
     quiet: true
     fail_msg: "The first HBA entry must be local all postgres peer without authentication options."
-  no_log: "{{ postgresql_no_log | bool }}"
   tags:
     - postgresql_validate
 
 - name: "POSTGRESQL | Assert HBA rule dependencies"
   ansible.builtin.assert:
     that:
-      - (item.type == 'local') == (item.address is not defined)
-      - item.get('options', []) is string or item.get('options', []) is sequence and item.get('options', []) is not mapping
-      - item.get('options', []) is string or item.get('options', []) | reject('string') | list | length == 0
+      - (__postgresql_entry.type == 'local') == (__postgresql_entry.address is not defined)
+      - >-
+        __postgresql_entry.get('options', []) is string or
+        __postgresql_entry.get('options', []) is sequence and __postgresql_entry.get('options', []) is not mapping
+      - __postgresql_entry.get('options', []) is string or __postgresql_entry.get('options', []) | reject('string') | list | length == 0
     quiet: true
     fail_msg: "Host rules require an address; local rules must omit it. Authentication options must be strings."
   loop: "{{ postgresql_hba_entries }}"
   loop_control:
-    label: "{{ item.type }} {{ item.database }} {{ item.user }}"
-  no_log: "{{ postgresql_no_log | bool }}"
+    loop_var: __postgresql_entry
+    label: "{{ __postgresql_entry.type }} {{ __postgresql_entry.database }} {{ __postgresql_entry.user }}"
+  no_log: "{{ postgresql_no_log | bool and __postgresql_entry.get('options', []) | length > 0 }}"
   tags:
     - postgresql_validate
 
 - name: "POSTGRESQL | Assert membership group selection"
   ansible.builtin.assert:
     that:
-      - item.groups is defined or item.group is defined
+      - __postgresql_entry.groups is defined or __postgresql_entry.group is defined
     quiet: true
     fail_msg: "Memberships require groups or the legacy group spelling."
-  loop: "{{ postgresql_memberships }}"
+  loop: >-
+    {{ postgresql_memberships | map('dict2items')
+       | map('selectattr', 'key', 'in', ['groups', 'group', 'target_roles'])
+       | map('items2dict') }}
   loop_control:
-    label: "{{ item.target_roles | join(', ') }}"
-  no_log: "{{ postgresql_no_log | bool }}"
+    loop_var: __postgresql_entry
+    label: "{{ __postgresql_entry.target_roles | join(', ') }}"
   tags:
     - postgresql_validate

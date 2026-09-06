@@ -55,7 +55,7 @@ The following variables are part of the public role interface.
 
 | Name | Type | Required | Default | Description |
 | ---- | ---- | -------- | ------- | ----------- |
-| `postgresql_no_log` | `bool` | `false` | `True` | Suppress logging and diffs for PostgreSQL object and configuration tasks that may contain credentials. |
+| `postgresql_no_log` | `bool` | `false` | `True` | Suppress logs and diffs when processing credentials, free-form settings, or stored connection data. |
 | `postgresql_listen_addresses` | `list` | `false` | - 127.0.0.1 | PostgreSQL listen_addresses values. |
 | `postgresql_port` | `int` | `false` | `5432` | PostgreSQL TCP port. |
 | `postgresql_max_connections` | `int` | `false` | `50` | Maximum concurrent PostgreSQL connections. |
@@ -156,11 +156,14 @@ The service is always enabled at boot and started after configuration. Reloads a
 
 ### Handlers
 
-- Apply postgresql configuration
+- apply configuration
 
 ## Security Notes
 
-- postgresql_no_log defaults to true for object and configuration tasks that may contain credentials.
+- postgresql_no_log defaults to true and protects role tasks that manage passwords and role-specific settings.
+- Other object entries without management passwords show their names and change status. Tablespace directory tasks receive only file metadata.
+- Subscription results remain protected because the module returns stored connection credentials, even when no password is supplied.
+- HBA files, free-form configuration and TLS passphrase settings remain protected; ordinary settings and identity mappings are visible.
 - pg_hba.conf and pg_ident.conf are fully managed to avoid conflicting stale rules.
 - Durability settings keep fsync, full_page_writes, and synchronous_commit enabled by default.
 

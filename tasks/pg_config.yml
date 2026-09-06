@@ -22,15 +22,15 @@
     mode: "0600"
     backup: true
     validate: "{{ __postgresql_config_validate_command }}"
-  notify: Apply postgresql configuration
+  notify: apply configuration
   no_log: "{{ postgresql_no_log | bool }}"
 
 - name: "POSTGRESQL | Configure settings"
   become: true
   become_user: "{{ __postgresql_user }}"
   ansible.builtin.template:
-    src: "{{ item.src }}"
-    dest: "{{ __postgresql_config_dir }}/conf.d/{{ item.dest }}"
+    src: "{{ __postgresql_config_template.src }}"
+    dest: "{{ __postgresql_config_dir }}/conf.d/{{ __postgresql_config_template.dest }}"
     owner: "{{ __postgresql_user }}"
     group: "{{ __postgresql_group }}"
     mode: "0600"
@@ -38,9 +38,10 @@
     validate: "{{ __postgresql_config_validate_command }}"
   loop: "{{ __postgresql_config_templates }}"
   loop_control:
-    label: "{{ item.dest }}"
-  notify: Apply postgresql configuration
-  no_log: "{{ postgresql_no_log | bool }}"
+    loop_var: __postgresql_config_template
+    label: "{{ __postgresql_config_template.dest }}"
+  notify: apply configuration
+  no_log: "{{ postgresql_no_log | bool and __postgresql_config_template.dest in ['15-ssl.conf', '90-extra-reload.conf'] }}"
 
 - name: "POSTGRESQL | Configure explicitly restart-required settings"
   become: true
@@ -54,5 +55,5 @@
     backup: true
     validate: "{{ __postgresql_config_validate_command }}"
   register: __postgresql_extra_restart_result
-  notify: Apply postgresql configuration
+  notify: apply configuration
   no_log: "{{ postgresql_no_log | bool }}"

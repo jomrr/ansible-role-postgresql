@@ -2,21 +2,21 @@
 # file: {{ template_destpath }}
 
 # TYPE  DATABASE        USER            ADDRESS                 METHOD          OPTIONS
-{% for entry in postgresql_hba_entries %}
-{% set __postgresql_hba_options = entry.options | default([]) %}
+{% for __postgresql_entry in postgresql_hba_entries %}
+{% set __postgresql_hba_options = __postgresql_entry.options | default([]) %}
 {% if __postgresql_hba_options is string %}
 {% set __postgresql_hba_options_text = __postgresql_hba_options %}
 {% else %}
 {% set __postgresql_hba_options_text = __postgresql_hba_options | join(' ') %}
 {% endif %}
-{% set __postgresql_hba_fields = [entry.type, entry.database, entry.user] %}
-{% if entry.address is defined %}
-{% set __postgresql_hba_fields = __postgresql_hba_fields + [entry.address] %}
+{% set __postgresql_hba_fields = [__postgresql_entry.type, __postgresql_entry.database, __postgresql_entry.user] %}
+{% if __postgresql_entry.address is defined %}
+{% set __postgresql_hba_fields = __postgresql_hba_fields + [__postgresql_entry.address] %}
 {% endif %}
-{% set __postgresql_hba_fields = __postgresql_hba_fields + [entry.method] %}
+{% set __postgresql_hba_fields = __postgresql_hba_fields + [__postgresql_entry.method] %}
 {% if __postgresql_hba_options_text | length > 0 %}
 {% set __postgresql_hba_fields = __postgresql_hba_fields + [__postgresql_hba_options_text] %}
 {% endif %}
-{% set __postgresql_hba_comment = (' # ' ~ entry.comment) if entry.comment is defined else '' %}
+{% set __postgresql_hba_comment = (' # ' ~ __postgresql_entry.comment) if __postgresql_entry.comment is defined else '' %}
 {{ __postgresql_hba_fields | join(' ') }}{{ __postgresql_hba_comment }}
 {% endfor %}

@@ -17,8 +17,8 @@ argument_specs:
         required: false
         default: true
         description:
-          - Suppress logging and diffs for PostgreSQL object and configuration tasks that
-            may contain credentials.
+          - Suppress logs and diffs when processing credentials, free-form settings, or
+            stored connection data.
       postgresql_listen_addresses:
         type: list
         elements: str

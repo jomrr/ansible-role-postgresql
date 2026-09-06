@@ -6,7 +6,7 @@
   ansible.builtin.service:
     name: "{{ __postgresql_service_name }}"
     state: reloaded
-  listen: Apply postgresql configuration
+  listen: apply configuration
   when:
     - __postgresql_running
     - not ansible_check_mode
@@ -22,7 +22,7 @@
     query: SELECT count(*) AS pending FROM pg_settings WHERE pending_restart
   register: __postgresql_pending_restart
   changed_when: false
-  listen: Apply postgresql configuration
+  listen: apply configuration
   when:
     - __postgresql_running
     - not ansible_check_mode
@@ -31,7 +31,7 @@
   ansible.builtin.service:
     name: "{{ __postgresql_service_name }}"
     state: restarted
-  listen: Apply postgresql configuration
+  listen: apply configuration
   when:
     - __postgresql_running
     - not ansible_check_mode

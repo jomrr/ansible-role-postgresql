@@ -6,7 +6,7 @@
 # Role behavior
 ################################################################################
 
-# Suppress logs and diffs for PostgreSQL object and configuration tasks that may process credentials.
+# Suppress logs and diffs when processing credentials, free-form settings, or stored connection data.
 postgresql_no_log: true
 
 ################################################################################

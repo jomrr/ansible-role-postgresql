@@ -10,5 +10,5 @@
     group: "{{ __postgresql_group }}"
     mode: "0640"
     backup: true
-  notify: Apply postgresql configuration
+  notify: apply configuration
   no_log: "{{ postgresql_no_log | bool }}"
