@@ -1,6 +1,10 @@
 # Ansible Role: postgresql
 
-![GitHub](https://img.shields.io/github/license/jomrr/ansible-role-postgresql) ![GitHub last commit](https://img.shields.io/github/last-commit/jomrr/ansible-role-postgresql) ![GitHub issues](https://img.shields.io/github/issues-raw/jomrr/ansible-role-postgresql) [![dev](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-postgresql/dev.yml?branch=dev&event=push&label=dev)](https://github.com/jomrr/ansible-role-postgresql/actions/workflows/dev.yml?query=branch%3Adev) [![main](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-postgresql/main.yml?branch=main&event=push&label=main)](https://github.com/jomrr/ansible-role-postgresql/actions/workflows/main.yml?query=branch%3Amain)
+![GitHub](https://img.shields.io/github/license/jomrr/ansible-role-postgresql)
+![GitHub last commit](https://img.shields.io/github/last-commit/jomrr/ansible-role-postgresql)
+![GitHub issues](https://img.shields.io/github/issues-raw/jomrr/ansible-role-postgresql)
+[![dev](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-postgresql/dev.yml?branch=dev&label=dev)](https://github.com/jomrr/ansible-role-postgresql/actions/workflows/dev.yml?query=branch%3Adev)
+[![main](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-postgresql/main.yml?branch=main&label=main)](https://github.com/jomrr/ansible-role-postgresql/actions/workflows/main.yml?query=branch%3Amain)
 
 Ansible role for installing and managing PostgreSQL.
 
@@ -17,7 +21,8 @@ This role installs, configures, and manages PostgreSQL runtime state.
 - PostgreSQL service enablement and runtime state
 - Managed PostgreSQL conf.d snippets
 - Managed pg_hba.conf and pg_ident.conf
-- PostgreSQL roles, memberships, tablespaces, databases, and extensions with per-object state
+- PostgreSQL roles, memberships, tablespaces, databases, and extensions with
+  per-object state
 - Logical replication publications and subscriptions with per-object state
 
 ### Not Managed
@@ -33,10 +38,14 @@ This role installs, configures, and manages PostgreSQL runtime state.
 
 ## Requirements
 
-- PostgreSQL 15 or newer and the community.postgresql collection from collections.yml.
-- Target host must provide psycopg2 or psycopg3 through the platform package list.
-- Local Unix-socket access as the PostgreSQL superuser postgres must use peer authentication.
-- The first HBA entry must be local all postgres peer without authentication options.
+- PostgreSQL 15 or newer and the community.postgresql collection from
+  collections.yml.
+- Target host must provide psycopg2 or psycopg3 through the platform package
+  list.
+- Local Unix-socket access as the PostgreSQL superuser postgres must use peer
+  authentication.
+- The first HBA entry must be local all postgres peer without authentication
+  options.
 
 ## Dependencies
 
@@ -51,91 +60,994 @@ collections:
 
 ## Role Variables
 
-The following variables are part of the public role interface.
+### `postgresql_no_log`
 
-| Name | Type | Required | Default | Description |
-| ---- | ---- | -------- | ------- | ----------- |
-| `postgresql_no_log` | `bool` | `false` | `True` | Suppress logs and diffs when processing credentials, free-form settings, or stored connection data. |
-| `postgresql_listen_addresses` | `list` | `false` | - 127.0.0.1 | PostgreSQL listen_addresses values. |
-| `postgresql_port` | `int` | `false` | `5432` | PostgreSQL TCP port. |
-| `postgresql_max_connections` | `int` | `false` | `50` | Maximum concurrent PostgreSQL connections. |
-| `postgresql_superuser_reserved_connections` | `int` | `false` | `3` | Connections reserved for PostgreSQL superusers. |
-| `postgresql_shared_buffers` | `str` | `false` | `2GB` | Shared buffer size optimized for an 8 GB VM default profile. |
-| `postgresql_effective_cache_size` | `str` | `false` | `6GB` | Planner cache estimate optimized for an 8 GB VM default profile. |
-| `postgresql_work_mem` | `str` | `false` | `16MB` | Per operation work memory. |
-| `postgresql_hash_mem_multiplier` | `str` | `false` | `2.0` | Hash memory multiplier. |
-| `postgresql_maintenance_work_mem` | `str` | `false` | `512MB` | Maintenance work memory. |
-| `postgresql_autovacuum_work_mem` | `str` | `false` | `128MB` | Autovacuum worker memory. |
-| `postgresql_temp_buffers` | `str` | `false` | `16MB` | Temporary buffer size per session. |
-| `postgresql_temp_file_limit` | `str` | `false` | `2GB` | Maximum temporary file size per process. |
-| `postgresql_max_worker_processes` | `int` | `false` | `8` | Maximum background worker processes. |
-| `postgresql_max_parallel_workers` | `int` | `false` | `4` | Maximum parallel workers. |
-| `postgresql_max_parallel_workers_per_gather` | `int` | `false` | `2` | Maximum parallel workers per gather node. |
-| `postgresql_max_parallel_maintenance_workers` | `int` | `false` | `2` | Maximum parallel maintenance workers. |
-| `postgresql_wal_level` | `str` | `false` | `replica` | PostgreSQL WAL level. Use logical for logical replication publishers/subscribers. |
-| `postgresql_max_wal_senders` | `int` | `false` | `4` | Maximum concurrent WAL sender processes. |
-| `postgresql_max_replication_slots` | `int` | `false` | `4` | Maximum replication slots. |
-| `postgresql_max_logical_replication_workers` | `int` | `false` | `4` | Maximum logical replication workers. |
-| `postgresql_max_sync_workers_per_subscription` | `int` | `false` | `2` | Maximum sync workers per subscription. |
-| `postgresql_fsync` | `str` | `false` | `on` | Whether fsync is enabled. |
-| `postgresql_full_page_writes` | `str` | `false` | `on` | Whether full page writes are enabled. |
-| `postgresql_synchronous_commit` | `str` | `false` | `on` | Synchronous commit setting. |
-| `postgresql_wal_compression` | `str` | `false` | `on` | WAL compression setting. |
-| `postgresql_checkpoint_timeout` | `str` | `false` | `15min` | Checkpoint timeout. |
-| `postgresql_checkpoint_completion_target` | `str` | `false` | `0.9` | Checkpoint completion target. |
-| `postgresql_max_wal_size` | `str` | `false` | `4GB` | Maximum WAL size before checkpoints. |
-| `postgresql_min_wal_size` | `str` | `false` | `512MB` | Minimum WAL size. |
-| `postgresql_autovacuum` | `str` | `false` | `on` | Whether autovacuum is enabled. |
-| `postgresql_autovacuum_max_workers` | `int` | `false` | `2` | Maximum autovacuum workers. |
-| `postgresql_autovacuum_naptime` | `str` | `false` | `1min` | Autovacuum naptime. |
-| `postgresql_autovacuum_vacuum_scale_factor` | `str` | `false` | `0.05` | Autovacuum vacuum scale factor. |
-| `postgresql_autovacuum_analyze_scale_factor` | `str` | `false` | `0.05` | Autovacuum analyze scale factor. |
-| `postgresql_autovacuum_vacuum_cost_delay` | `str` | `false` | `10ms` | Autovacuum cost delay. |
-| `postgresql_autovacuum_vacuum_cost_limit` | `int` | `false` | `1000` | Autovacuum cost limit. |
-| `postgresql_random_page_cost` | `str` | `false` | `1.5` | Planner random page cost for SSD-backed VM storage. |
-| `postgresql_effective_io_concurrency` | `int` | `false` | `32` | Planner effective I/O concurrency. |
-| `postgresql_maintenance_io_concurrency` | `int` | `false` | `16` | Maintenance I/O concurrency. |
-| `postgresql_timezone` | `str` | `false` | `UTC` | PostgreSQL timezone. |
-| `postgresql_log_timezone` | `str` | `false` | `UTC` | PostgreSQL log timezone. |
-| `postgresql_datestyle` | `str` | `false` | `iso, ymd` | PostgreSQL datestyle. |
-| `postgresql_lc_messages` | `str` | `false` | `None` | Locale used for PostgreSQL system error messages. |
-| `postgresql_lc_monetary` | `str` | `false` | `None` | Locale used for PostgreSQL monetary formatting. |
-| `postgresql_lc_numeric` | `str` | `false` | `None` | Locale used for PostgreSQL number formatting. |
-| `postgresql_lc_time` | `str` | `false` | `None` | Locale used for PostgreSQL date and time formatting. |
-| `postgresql_default_text_search_config` | `str` | `false` | `pg_catalog.english` | Default text search configuration. |
-| `postgresql_password_encryption` | `str` | `false` | `scram-sha-256` | Default password encryption method. |
-| `postgresql_ssl` | `str` | `false` | `off` | Enable TLS for PostgreSQL client connections. |
-| `postgresql_ssl_cert_file` | `str` | `false` | `None` | Server certificate file used by PostgreSQL TLS. |
-| `postgresql_ssl_key_file` | `str` | `false` | `None` | Server private key file used by PostgreSQL TLS. |
-| `postgresql_ssl_ca_file` | `str` | `false` | `None` | Trusted CA file used for PostgreSQL client certificate validation. |
-| `postgresql_ssl_crl_file` | `str` | `false` | `None` | Certificate revocation list file used by PostgreSQL TLS. |
-| `postgresql_ssl_crl_dir` | `str` | `false` | `None` | Certificate revocation list directory used by PostgreSQL TLS. |
-| `postgresql_ssl_ciphers` | `str` | `false` | `None` | TLS cipher list for TLS 1.2 and older. |
-| `postgresql_ssl_tls13_ciphers` | `str` | `false` | `None` | TLS 1.3 cipher suites. |
-| `postgresql_ssl_prefer_server_ciphers` | `str` | `false` | `on` | Whether PostgreSQL should prefer the server cipher order. |
-| `postgresql_ssl_min_protocol_version` | `str` | `false` | `None` | Minimum TLS protocol version. |
-| `postgresql_ssl_max_protocol_version` | `str` | `false` | `None` | Maximum TLS protocol version. |
-| `postgresql_ssl_dh_params_file` | `str` | `false` | `None` | Diffie-Hellman parameters file used by PostgreSQL TLS. |
-| `postgresql_ssl_passphrase_command` | `str` | `false` | `None` | Command used to unlock passphrase-protected private keys. |
-| `postgresql_ssl_passphrase_command_supports_reload` | `str` | `false` | `off` | Whether the TLS passphrase command may be used during reload. |
-| `postgresql_log_destination` | `str` | `false` | `stderr` | PostgreSQL log destination. |
-| `postgresql_logging_collector` | `str` | `false` | `off` | Whether PostgreSQL logging collector is enabled. |
-| `postgresql_log_statement` | `str` | `false` | `none` | PostgreSQL statement logging level. |
-| `postgresql_log_min_duration_statement` | `int` | `false` | `1000` | Log statements running at least this many milliseconds. |
-| `postgresql_log_temp_files` | `str` | `false` | `64MB` | Log temp files above this size. |
-| `postgresql_log_checkpoints` | `str` | `false` | `on` | Whether checkpoint logging is enabled. |
-| `postgresql_log_autovacuum_min_duration` | `str` | `false` | `1min` | Log autovacuum actions above this duration. |
-| `postgresql_config_extra_reload` | `list` | `false` | [] | Additional PostgreSQL settings expected to become effective after a reload.<br>Entries require name and value. The optional quote flag defaults to true. |
-| `postgresql_config_extra_restart` | `list` | `false` | [] | Additional PostgreSQL settings expected to require a PostgreSQL restart.<br>Entries require name and value. The optional quote flag defaults to true. |
-| `postgresql_pg_ident_entries` | `list` | `false` | [] | Entries rendered into the fully managed pg_ident.conf file. |
-| `postgresql_hba_entries` | `list` | `false` | - type: local<br />  database: all<br />  user: postgres<br />  method: peer<br />- type: host<br />  database: all<br />  user: all<br />  address: 127.0.0.1/32<br />  method: scram-sha-256 | Entries rendered into the fully managed pg_hba.conf file.<br>The first entry must be local all postgres peer without authentication options. |
-| `postgresql_roles` | `list` | `false` | [] | PostgreSQL roles and login users managed through per-object state. |
-| `postgresql_memberships` | `list` | `false` | [] | PostgreSQL role memberships managed through per-object state. |
-| `postgresql_tablespaces` | `list` | `false` | [] | PostgreSQL tablespaces managed through per-object state. |
-| `postgresql_databases` | `list` | `false` | [] | PostgreSQL databases managed through per-object state. |
-| `postgresql_extensions` | `list` | `false` | [] | PostgreSQL extensions managed through per-object state in their target database. |
-| `postgresql_publications` | `list` | `false` | [] | Logical replication publications managed through per-object state in their source database. |
-| `postgresql_subscriptions` | `list` | `false` | [] | Logical replication subscriptions managed through per-object state in their local database. |
+Type: `bool`. Required: `false`.
+
+Suppress logs and diffs when processing credentials, free-form settings, or
+stored connection data.
+
+Default:
+
+```yaml
+postgresql_no_log: true
+```
+
+### `postgresql_listen_addresses`
+
+Type: `list`. Required: `false`.
+
+PostgreSQL listen_addresses values.
+
+Default:
+
+```yaml
+postgresql_listen_addresses:
+  - 127.0.0.1
+```
+
+### `postgresql_port`
+
+Type: `int`. Required: `false`.
+
+PostgreSQL TCP port.
+
+Default:
+
+```yaml
+postgresql_port: 5432
+```
+
+### `postgresql_max_connections`
+
+Type: `int`. Required: `false`.
+
+Maximum concurrent PostgreSQL connections.
+
+Default:
+
+```yaml
+postgresql_max_connections: 50
+```
+
+### `postgresql_superuser_reserved_connections`
+
+Type: `int`. Required: `false`.
+
+Connections reserved for PostgreSQL superusers.
+
+Default:
+
+```yaml
+postgresql_superuser_reserved_connections: 3
+```
+
+### `postgresql_shared_buffers`
+
+Type: `str`. Required: `false`.
+
+Shared buffer size optimized for an 8 GB VM default profile.
+
+Default:
+
+```yaml
+postgresql_shared_buffers: 2GB
+```
+
+### `postgresql_effective_cache_size`
+
+Type: `str`. Required: `false`.
+
+Planner cache estimate optimized for an 8 GB VM default profile.
+
+Default:
+
+```yaml
+postgresql_effective_cache_size: 6GB
+```
+
+### `postgresql_work_mem`
+
+Type: `str`. Required: `false`.
+
+Per operation work memory.
+
+Default:
+
+```yaml
+postgresql_work_mem: 16MB
+```
+
+### `postgresql_hash_mem_multiplier`
+
+Type: `str`. Required: `false`.
+
+Hash memory multiplier.
+
+Default:
+
+```yaml
+postgresql_hash_mem_multiplier: '2.0'
+```
+
+### `postgresql_maintenance_work_mem`
+
+Type: `str`. Required: `false`.
+
+Maintenance work memory.
+
+Default:
+
+```yaml
+postgresql_maintenance_work_mem: 512MB
+```
+
+### `postgresql_autovacuum_work_mem`
+
+Type: `str`. Required: `false`.
+
+Autovacuum worker memory.
+
+Default:
+
+```yaml
+postgresql_autovacuum_work_mem: 128MB
+```
+
+### `postgresql_temp_buffers`
+
+Type: `str`. Required: `false`.
+
+Temporary buffer size per session.
+
+Default:
+
+```yaml
+postgresql_temp_buffers: 16MB
+```
+
+### `postgresql_temp_file_limit`
+
+Type: `str`. Required: `false`.
+
+Maximum temporary file size per process.
+
+Default:
+
+```yaml
+postgresql_temp_file_limit: 2GB
+```
+
+### `postgresql_max_worker_processes`
+
+Type: `int`. Required: `false`.
+
+Maximum background worker processes.
+
+Default:
+
+```yaml
+postgresql_max_worker_processes: 8
+```
+
+### `postgresql_max_parallel_workers`
+
+Type: `int`. Required: `false`.
+
+Maximum parallel workers.
+
+Default:
+
+```yaml
+postgresql_max_parallel_workers: 4
+```
+
+### `postgresql_max_parallel_workers_per_gather`
+
+Type: `int`. Required: `false`.
+
+Maximum parallel workers per gather node.
+
+Default:
+
+```yaml
+postgresql_max_parallel_workers_per_gather: 2
+```
+
+### `postgresql_max_parallel_maintenance_workers`
+
+Type: `int`. Required: `false`.
+
+Maximum parallel maintenance workers.
+
+Default:
+
+```yaml
+postgresql_max_parallel_maintenance_workers: 2
+```
+
+### `postgresql_wal_level`
+
+Type: `str`. Required: `false`.
+
+PostgreSQL WAL level. Use logical for logical replication
+publishers/subscribers.
+
+Default:
+
+```yaml
+postgresql_wal_level: replica
+```
+
+### `postgresql_max_wal_senders`
+
+Type: `int`. Required: `false`.
+
+Maximum concurrent WAL sender processes.
+
+Default:
+
+```yaml
+postgresql_max_wal_senders: 4
+```
+
+### `postgresql_max_replication_slots`
+
+Type: `int`. Required: `false`.
+
+Maximum replication slots.
+
+Default:
+
+```yaml
+postgresql_max_replication_slots: 4
+```
+
+### `postgresql_max_logical_replication_workers`
+
+Type: `int`. Required: `false`.
+
+Maximum logical replication workers.
+
+Default:
+
+```yaml
+postgresql_max_logical_replication_workers: 4
+```
+
+### `postgresql_max_sync_workers_per_subscription`
+
+Type: `int`. Required: `false`.
+
+Maximum sync workers per subscription.
+
+Default:
+
+```yaml
+postgresql_max_sync_workers_per_subscription: 2
+```
+
+### `postgresql_fsync`
+
+Type: `str`. Required: `false`.
+
+Whether fsync is enabled.
+
+Default:
+
+```yaml
+postgresql_fsync: 'on'
+```
+
+### `postgresql_full_page_writes`
+
+Type: `str`. Required: `false`.
+
+Whether full page writes are enabled.
+
+Default:
+
+```yaml
+postgresql_full_page_writes: 'on'
+```
+
+### `postgresql_synchronous_commit`
+
+Type: `str`. Required: `false`.
+
+Synchronous commit setting.
+
+Default:
+
+```yaml
+postgresql_synchronous_commit: 'on'
+```
+
+### `postgresql_wal_compression`
+
+Type: `str`. Required: `false`.
+
+WAL compression setting.
+
+Default:
+
+```yaml
+postgresql_wal_compression: 'on'
+```
+
+### `postgresql_checkpoint_timeout`
+
+Type: `str`. Required: `false`.
+
+Checkpoint timeout.
+
+Default:
+
+```yaml
+postgresql_checkpoint_timeout: 15min
+```
+
+### `postgresql_checkpoint_completion_target`
+
+Type: `str`. Required: `false`.
+
+Checkpoint completion target.
+
+Default:
+
+```yaml
+postgresql_checkpoint_completion_target: '0.9'
+```
+
+### `postgresql_max_wal_size`
+
+Type: `str`. Required: `false`.
+
+Maximum WAL size before checkpoints.
+
+Default:
+
+```yaml
+postgresql_max_wal_size: 4GB
+```
+
+### `postgresql_min_wal_size`
+
+Type: `str`. Required: `false`.
+
+Minimum WAL size.
+
+Default:
+
+```yaml
+postgresql_min_wal_size: 512MB
+```
+
+### `postgresql_autovacuum`
+
+Type: `str`. Required: `false`.
+
+Whether autovacuum is enabled.
+
+Default:
+
+```yaml
+postgresql_autovacuum: 'on'
+```
+
+### `postgresql_autovacuum_max_workers`
+
+Type: `int`. Required: `false`.
+
+Maximum autovacuum workers.
+
+Default:
+
+```yaml
+postgresql_autovacuum_max_workers: 2
+```
+
+### `postgresql_autovacuum_naptime`
+
+Type: `str`. Required: `false`.
+
+Autovacuum naptime.
+
+Default:
+
+```yaml
+postgresql_autovacuum_naptime: 1min
+```
+
+### `postgresql_autovacuum_vacuum_scale_factor`
+
+Type: `str`. Required: `false`.
+
+Autovacuum vacuum scale factor.
+
+Default:
+
+```yaml
+postgresql_autovacuum_vacuum_scale_factor: '0.05'
+```
+
+### `postgresql_autovacuum_analyze_scale_factor`
+
+Type: `str`. Required: `false`.
+
+Autovacuum analyze scale factor.
+
+Default:
+
+```yaml
+postgresql_autovacuum_analyze_scale_factor: '0.05'
+```
+
+### `postgresql_autovacuum_vacuum_cost_delay`
+
+Type: `str`. Required: `false`.
+
+Autovacuum cost delay.
+
+Default:
+
+```yaml
+postgresql_autovacuum_vacuum_cost_delay: 10ms
+```
+
+### `postgresql_autovacuum_vacuum_cost_limit`
+
+Type: `int`. Required: `false`.
+
+Autovacuum cost limit.
+
+Default:
+
+```yaml
+postgresql_autovacuum_vacuum_cost_limit: 1000
+```
+
+### `postgresql_random_page_cost`
+
+Type: `str`. Required: `false`.
+
+Planner random page cost for SSD-backed VM storage.
+
+Default:
+
+```yaml
+postgresql_random_page_cost: '1.5'
+```
+
+### `postgresql_effective_io_concurrency`
+
+Type: `int`. Required: `false`.
+
+Planner effective I/O concurrency.
+
+Default:
+
+```yaml
+postgresql_effective_io_concurrency: 32
+```
+
+### `postgresql_maintenance_io_concurrency`
+
+Type: `int`. Required: `false`.
+
+Maintenance I/O concurrency.
+
+Default:
+
+```yaml
+postgresql_maintenance_io_concurrency: 16
+```
+
+### `postgresql_timezone`
+
+Type: `str`. Required: `false`.
+
+PostgreSQL timezone.
+
+Default:
+
+```yaml
+postgresql_timezone: UTC
+```
+
+### `postgresql_log_timezone`
+
+Type: `str`. Required: `false`.
+
+PostgreSQL log timezone.
+
+Default:
+
+```yaml
+postgresql_log_timezone: UTC
+```
+
+### `postgresql_datestyle`
+
+Type: `str`. Required: `false`.
+
+PostgreSQL datestyle.
+
+Default:
+
+```yaml
+postgresql_datestyle: iso, ymd
+```
+
+### `postgresql_lc_messages`
+
+Type: `str`. Required: `false`.
+
+Locale used for PostgreSQL system error messages.
+
+Default:
+
+```yaml
+postgresql_lc_messages: null
+```
+
+### `postgresql_lc_monetary`
+
+Type: `str`. Required: `false`.
+
+Locale used for PostgreSQL monetary formatting.
+
+Default:
+
+```yaml
+postgresql_lc_monetary: null
+```
+
+### `postgresql_lc_numeric`
+
+Type: `str`. Required: `false`.
+
+Locale used for PostgreSQL number formatting.
+
+Default:
+
+```yaml
+postgresql_lc_numeric: null
+```
+
+### `postgresql_lc_time`
+
+Type: `str`. Required: `false`.
+
+Locale used for PostgreSQL date and time formatting.
+
+Default:
+
+```yaml
+postgresql_lc_time: null
+```
+
+### `postgresql_default_text_search_config`
+
+Type: `str`. Required: `false`.
+
+Default text search configuration.
+
+Default:
+
+```yaml
+postgresql_default_text_search_config: pg_catalog.english
+```
+
+### `postgresql_password_encryption`
+
+Type: `str`. Required: `false`.
+
+Default password encryption method.
+
+Default:
+
+```yaml
+postgresql_password_encryption: scram-sha-256
+```
+
+### `postgresql_ssl`
+
+Type: `str`. Required: `false`.
+
+Enable TLS for PostgreSQL client connections.
+
+Default:
+
+```yaml
+postgresql_ssl: 'off'
+```
+
+### `postgresql_ssl_cert_file`
+
+Type: `str`. Required: `false`.
+
+Server certificate file used by PostgreSQL TLS.
+
+Default:
+
+```yaml
+postgresql_ssl_cert_file: null
+```
+
+### `postgresql_ssl_key_file`
+
+Type: `str`. Required: `false`.
+
+Server private key file used by PostgreSQL TLS.
+
+Default:
+
+```yaml
+postgresql_ssl_key_file: null
+```
+
+### `postgresql_ssl_ca_file`
+
+Type: `str`. Required: `false`.
+
+Trusted CA file used for PostgreSQL client certificate validation.
+
+Default:
+
+```yaml
+postgresql_ssl_ca_file: null
+```
+
+### `postgresql_ssl_crl_file`
+
+Type: `str`. Required: `false`.
+
+Certificate revocation list file used by PostgreSQL TLS.
+
+Default:
+
+```yaml
+postgresql_ssl_crl_file: null
+```
+
+### `postgresql_ssl_crl_dir`
+
+Type: `str`. Required: `false`.
+
+Certificate revocation list directory used by PostgreSQL TLS.
+
+Default:
+
+```yaml
+postgresql_ssl_crl_dir: null
+```
+
+### `postgresql_ssl_ciphers`
+
+Type: `str`. Required: `false`.
+
+TLS cipher list for TLS 1.2 and older.
+
+Default:
+
+```yaml
+postgresql_ssl_ciphers: null
+```
+
+### `postgresql_ssl_tls13_ciphers`
+
+Type: `str`. Required: `false`.
+
+TLS 1.3 cipher suites.
+
+Default:
+
+```yaml
+postgresql_ssl_tls13_ciphers: null
+```
+
+### `postgresql_ssl_prefer_server_ciphers`
+
+Type: `str`. Required: `false`.
+
+Whether PostgreSQL should prefer the server cipher order.
+
+Default:
+
+```yaml
+postgresql_ssl_prefer_server_ciphers: 'on'
+```
+
+### `postgresql_ssl_min_protocol_version`
+
+Type: `str`. Required: `false`.
+
+Minimum TLS protocol version.
+
+Default:
+
+```yaml
+postgresql_ssl_min_protocol_version: null
+```
+
+### `postgresql_ssl_max_protocol_version`
+
+Type: `str`. Required: `false`.
+
+Maximum TLS protocol version.
+
+Default:
+
+```yaml
+postgresql_ssl_max_protocol_version: null
+```
+
+### `postgresql_ssl_dh_params_file`
+
+Type: `str`. Required: `false`.
+
+Diffie-Hellman parameters file used by PostgreSQL TLS.
+
+Default:
+
+```yaml
+postgresql_ssl_dh_params_file: null
+```
+
+### `postgresql_ssl_passphrase_command`
+
+Type: `str`. Required: `false`.
+
+Command used to unlock passphrase-protected private keys.
+
+Default:
+
+```yaml
+postgresql_ssl_passphrase_command: null
+```
+
+### `postgresql_ssl_passphrase_command_supports_reload`
+
+Type: `str`. Required: `false`.
+
+Whether the TLS passphrase command may be used during reload.
+
+Default:
+
+```yaml
+postgresql_ssl_passphrase_command_supports_reload: 'off'
+```
+
+### `postgresql_log_destination`
+
+Type: `str`. Required: `false`.
+
+PostgreSQL log destination.
+
+Default:
+
+```yaml
+postgresql_log_destination: stderr
+```
+
+### `postgresql_logging_collector`
+
+Type: `str`. Required: `false`.
+
+Whether PostgreSQL logging collector is enabled.
+
+Default:
+
+```yaml
+postgresql_logging_collector: 'off'
+```
+
+### `postgresql_log_statement`
+
+Type: `str`. Required: `false`.
+
+PostgreSQL statement logging level.
+
+Default:
+
+```yaml
+postgresql_log_statement: none
+```
+
+### `postgresql_log_min_duration_statement`
+
+Type: `int`. Required: `false`.
+
+Log statements running at least this many milliseconds.
+
+Default:
+
+```yaml
+postgresql_log_min_duration_statement: 1000
+```
+
+### `postgresql_log_temp_files`
+
+Type: `str`. Required: `false`.
+
+Log temp files above this size.
+
+Default:
+
+```yaml
+postgresql_log_temp_files: 64MB
+```
+
+### `postgresql_log_checkpoints`
+
+Type: `str`. Required: `false`.
+
+Whether checkpoint logging is enabled.
+
+Default:
+
+```yaml
+postgresql_log_checkpoints: 'on'
+```
+
+### `postgresql_log_autovacuum_min_duration`
+
+Type: `str`. Required: `false`.
+
+Log autovacuum actions above this duration.
+
+Default:
+
+```yaml
+postgresql_log_autovacuum_min_duration: 1min
+```
+
+### `postgresql_config_extra_reload`
+
+Type: `list`. Required: `false`.
+
+Additional PostgreSQL settings expected to become effective after a reload.
+Entries require name and value. The optional quote flag defaults to true.
+
+Default:
+
+```yaml
+postgresql_config_extra_reload: []
+```
+
+### `postgresql_config_extra_restart`
+
+Type: `list`. Required: `false`.
+
+Additional PostgreSQL settings expected to require a PostgreSQL restart.
+Entries require name and value. The optional quote flag defaults to true.
+
+Default:
+
+```yaml
+postgresql_config_extra_restart: []
+```
+
+### `postgresql_pg_ident_entries`
+
+Type: `list`. Required: `false`.
+
+Entries rendered into the fully managed pg_ident.conf file.
+
+Default:
+
+```yaml
+postgresql_pg_ident_entries: []
+```
+
+### `postgresql_hba_entries`
+
+Type: `list`. Required: `false`.
+
+Entries rendered into the fully managed pg_hba.conf file.
+The first entry must be local all postgres peer without authentication options.
+
+Default:
+
+```yaml
+postgresql_hba_entries:
+  - type: local
+    database: all
+    user: postgres
+    method: peer
+  - type: host
+    database: all
+    user: all
+    address: 127.0.0.1/32
+    method: scram-sha-256
+```
+
+### `postgresql_roles`
+
+Type: `list`. Required: `false`.
+
+PostgreSQL roles and login users managed through per-object state.
+
+Default:
+
+```yaml
+postgresql_roles: []
+```
+
+### `postgresql_memberships`
+
+Type: `list`. Required: `false`.
+
+PostgreSQL role memberships managed through per-object state.
+
+Default:
+
+```yaml
+postgresql_memberships: []
+```
+
+### `postgresql_tablespaces`
+
+Type: `list`. Required: `false`.
+
+PostgreSQL tablespaces managed through per-object state.
+
+Default:
+
+```yaml
+postgresql_tablespaces: []
+```
+
+### `postgresql_databases`
+
+Type: `list`. Required: `false`.
+
+PostgreSQL databases managed through per-object state.
+
+Default:
+
+```yaml
+postgresql_databases: []
+```
+
+### `postgresql_extensions`
+
+Type: `list`. Required: `false`.
+
+PostgreSQL extensions managed through per-object state in their target database.
+
+Default:
+
+```yaml
+postgresql_extensions: []
+```
+
+### `postgresql_publications`
+
+Type: `list`. Required: `false`.
+
+Logical replication publications managed through per-object state in their
+source database.
+
+Default:
+
+```yaml
+postgresql_publications: []
+```
+
+### `postgresql_subscriptions`
+
+Type: `list`. Required: `false`.
+
+Logical replication subscriptions managed through per-object state in their
+local database.
+
+Default:
+
+```yaml
+postgresql_subscriptions: []
+```
 
 ## Managed Files
 
@@ -145,14 +1057,17 @@ The following variables are part of the public role interface.
 
 ## Check Mode
 
-Package and template tasks support check mode. First-run cluster initialization and database-object changes depend on platform command/module support.
+Package and template tasks support check mode. First-run cluster initialization
+and database-object changes depend on platform command/module support.
 
 - Read-only cluster discovery commands are marked changed_when=false.
-- PostgreSQL object modules from community.postgresql provide check mode where supported by the module.
+- PostgreSQL object modules from community.postgresql provide check mode where
+  supported by the module.
 
 ## Service Behavior
 
-The service is always enabled at boot and started after configuration. Reloads and restarts happen only through handlers.
+The service is always enabled at boot and started after configuration. Reloads
+and restarts happen only through handlers.
 
 ### Handlers
 
@@ -160,26 +1075,42 @@ The service is always enabled at boot and started after configuration. Reloads a
 
 ## Security Notes
 
-- postgresql_no_log defaults to true and protects role tasks that manage passwords and role-specific settings.
-- Other object entries without management passwords show their names and change status. Tablespace directory tasks receive only file metadata.
-- Subscription results remain protected because the module returns stored connection credentials, even when no password is supplied.
-- HBA files, free-form configuration and TLS passphrase settings remain protected; ordinary settings and identity mappings are visible.
-- pg_hba.conf and pg_ident.conf are fully managed to avoid conflicting stale rules.
-- Durability settings keep fsync, full_page_writes, and synchronous_commit enabled by default.
+- postgresql_no_log defaults to true and protects role tasks that manage
+  passwords and role-specific settings.
+- Other object entries without management passwords show their names and change
+  status. Tablespace directory tasks receive only file metadata.
+- Subscription results remain protected because the module returns stored
+  connection credentials, even when no password is supplied.
+- HBA files, free-form configuration and TLS passphrase settings remain
+  protected; ordinary settings and identity mappings are visible.
+- pg_hba.conf and pg_ident.conf are fully managed to avoid conflicting stale
+  rules.
+- Durability settings keep fsync, full_page_writes, and synchronous_commit
+  enabled by default.
 
 ## Operational Notes
 
-- Repeated runs with unchanged inputs are idempotent and do not reload or restart PostgreSQL.
-- Configuration changes reload the server; pending_restart or changed restart extras trigger a restart when required.
-- Configuration snippets and the main include directive use native module validation before writing. Module backups remain available.
-- HBA and Ident files have no separate preflight validation; PostgreSQL reads them during service start or reload.
+- Repeated runs with unchanged inputs are idempotent and do not reload or
+  restart PostgreSQL.
+- Configuration changes reload the server; pending_restart or changed restart
+  extras trigger a restart when required.
+- Configuration snippets and the main include directive use native module
+  validation before writing. Module backups remain available.
+- HBA and Ident files have no separate preflight validation; PostgreSQL reads
+  them during service start or reload.
 - Certificate issuance and deployment remain external responsibilities.
-- Defaults are tuned for a small dedicated 8 GB RAM / 4 vCPU VM on SSD-backed storage.
-- Per-object state=absent is supported only where the underlying community.postgresql module supports it cleanly.
-- The role does not orchestrate dependency-safe destructive cleanup across related PostgreSQL objects.
-- Logical replication copies DML changes, not DDL. Schema migrations must be orchestrated outside this role.
-- Debian and Ubuntu use the package-provided main cluster and resolve its standard paths from pg_config --bindir.
-- TLS configuration settings are managed as PostgreSQL config values; certificate issuance and file deployment stay outside this role.
+- Defaults are tuned for a small dedicated 8 GB RAM / 4 vCPU VM on SSD-backed
+  storage.
+- Per-object state=absent is supported only where the underlying
+  community.postgresql module supports it cleanly.
+- The role does not orchestrate dependency-safe destructive cleanup across
+  related PostgreSQL objects.
+- Logical replication copies DML changes, not DDL. Schema migrations must be
+  orchestrated outside this role.
+- Debian and Ubuntu use the package-provided main cluster and resolve its
+  standard paths from pg_config --bindir.
+- TLS configuration settings are managed as PostgreSQL config values;
+  certificate issuance and file deployment stay outside this role.
 
 ## Supported Platforms
 
@@ -206,6 +1137,7 @@ Apply the default small-VM PostgreSQL profile.
   roles:
     - role: jomrr.postgresql
 ```
+
 ### Managed database with extension
 
 Create a login role, an application database, and an extension.
@@ -225,6 +1157,7 @@ postgresql_extensions:
   - name: pgcrypto
     database: appdb
 ```
+
 ### Logical replication publisher
 
 Publish all tables in schema app from database appdb.
