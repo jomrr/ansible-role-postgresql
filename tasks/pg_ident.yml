@@ -3,6 +3,8 @@
 # file: tasks/pg_ident.yml
 
 - name: "POSTGRESQL | Configure pg_ident.conf"
+  become: true
+  become_user: root
   ansible.builtin.template:
     src: pg_ident.conf.j2
     dest: "{{ __postgresql_config_dir }}/pg_ident.conf"

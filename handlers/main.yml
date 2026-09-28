@@ -3,6 +3,8 @@
 # file: handlers/main.yml
 
 - name: "POSTGRESQL | Reload configuration"
+  become: true
+  become_user: root
   ansible.builtin.service:
     name: "{{ __postgresql_service_name }}"
     state: reloaded
@@ -28,6 +30,8 @@
     - not ansible_check_mode
 
 - name: "POSTGRESQL | Restart when PostgreSQL requires it"
+  become: true
+  become_user: root
   ansible.builtin.service:
     name: "{{ __postgresql_service_name }}"
     state: restarted

@@ -3,6 +3,8 @@
 # file: tasks/pg_config.yml
 
 - name: "POSTGRESQL | Ensure managed configuration directory exists"
+  become: true
+  become_user: root
   ansible.builtin.file:
     path: "{{ __postgresql_config_dir }}/conf.d"
     state: directory

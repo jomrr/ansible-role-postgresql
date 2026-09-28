@@ -63,6 +63,8 @@
     - postgresql_objects
 
 - name: "POSTGRESQL | Ensure tablespace directories exist"
+  become: true
+  become_user: root
   ansible.builtin.file:
     path: "{{ __postgresql_directory.location }}"
     state: directory

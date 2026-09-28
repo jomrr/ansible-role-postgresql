@@ -21,6 +21,8 @@
   ansible.builtin.import_tasks: assert.yml
 
 - name: "POSTGRESQL | Manage packages"
+  become: true
+  become_user: root
   ansible.builtin.package:
     name: "{{ __postgresql_packages }}"
     state: present
@@ -53,6 +55,8 @@
     - postgresql_pg_hba
 
 - name: "POSTGRESQL | Manage service"
+  become: true
+  become_user: root
   ansible.builtin.service:
     name: "{{ __postgresql_service_name }}"
     enabled: true

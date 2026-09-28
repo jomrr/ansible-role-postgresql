@@ -34,6 +34,8 @@
 
 # Read the running endpoint, which remains in use until a port change is restarted.
 - name: "POSTGRESQL | Read running cluster endpoint"
+  become: true
+  become_user: root
   ansible.builtin.command:
     argv:
       - sed

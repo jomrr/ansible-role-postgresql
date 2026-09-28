@@ -3,6 +3,8 @@
 # file: tasks/pg_hba.yml
 
 - name: "POSTGRESQL | Configure pg_hba.conf"
+  become: true
+  become_user: root
   ansible.builtin.template:
     src: pg_hba.conf.j2
     dest: "{{ __postgresql_config_dir }}/pg_hba.conf"
