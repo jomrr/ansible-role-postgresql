@@ -22,6 +22,21 @@ __postgresql_config_templates:
   - src: conf.d/90-extra-reload.conf.j2
     dest: 90-extra-reload.conf
 
+# Stage root-owned template candidates where PostgreSQL can read them without
+# exposing Ansible's private remote temporary directory.
+__postgresql_template_validate_command: >-
+  /bin/sh -c
+  'candidate=$(mktemp "{{ __postgresql_config_dir }}/.ansible-postgresql-validate.XXXXXX") &&
+  trap "rm -f \"$candidate\"" EXIT HUP INT TERM &&
+  install -o {{ __postgresql_user }} -g {{ __postgresql_group }} -m 0600 "$1" "$candidate" &&
+  sudo -u {{ __postgresql_user }} --
+  {{ __postgresql_bin_dir }}/postgres
+  -D {{ __postgresql_data_dir }}
+  -C config_file
+  -c config_file="$candidate"'
+  ansible-postgresql-validator
+  %s
+
 # Use the current endpoint until PostgreSQL applies a port change.
 __postgresql_running: "{{ __postgresql_runtime_status.rc == 0 }}"
 __postgresql_login_port: "{{ __postgresql_endpoint.stdout_lines[0] if __postgresql_running else postgresql_port }}"

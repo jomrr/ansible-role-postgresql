@@ -5,15 +5,20 @@
 - name: "POSTGRESQL | Verify managed PostgreSQL behavior"
   hosts: all
   gather_facts: false
-  become: true
-  become_user: postgres
   module_defaults:
     community.postgresql.postgresql_query:
       login_db: postgres
       login_user: postgres
       login_port: 5433
   tasks:
+    - name: "POSTGRESQL | Read effective connection identity"
+      ansible.builtin.command: id -un
+      register: __postgresql_connection_identity
+      changed_when: false
+
     - name: "POSTGRESQL | Read effective configuration and object state"
+      become: true
+      become_user: postgres
       community.postgresql.postgresql_query:
         query: >-
           SELECT current_setting('port')::int AS port,
@@ -34,6 +39,7 @@
     - name: "POSTGRESQL | Assert managed configuration and objects are effective"
       ansible.builtin.assert:
         that:
+          - __postgresql_connection_identity.stdout == 'molecule'
           - __postgresql_verified.query_result[0].port == 5433
           - __postgresql_verified.query_result[0].statement_timeout == '30s'
           - __postgresql_verified.query_result[0].lock_timeout == '5s'
@@ -45,6 +51,7 @@
         quiet: true
 
     - name: "POSTGRESQL | Connect through the managed identity mapping"
+      become: true
       become_user: root
       community.postgresql.postgresql_query:
         login_db: appdb

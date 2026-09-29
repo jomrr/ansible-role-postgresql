@@ -3,6 +3,7 @@
 # file: vars/Suse.yml
 
 __postgresql_packages:
+  - acl
   - postgresql
   - postgresql-server
   - postgresql-contrib

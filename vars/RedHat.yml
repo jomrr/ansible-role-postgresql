@@ -3,6 +3,7 @@
 # file: vars/RedHat.yml
 
 __postgresql_packages:
+  - acl
   - postgresql
   - postgresql-server
   - postgresql-contrib

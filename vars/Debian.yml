@@ -3,6 +3,7 @@
 # file: vars/Debian.yml
 
 __postgresql_packages:
+  - acl
   - postgresql
   - postgresql-contrib
   - libpq-dev

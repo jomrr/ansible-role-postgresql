@@ -34,11 +34,11 @@
     - postgresql_cluster
 
 - name: "POSTGRESQL | Initialize PostgreSQL cluster with initdb"
+  become: true
+  become_user: "{{ __postgresql_user }}"
   ansible.builtin.command:
     cmd: "{{ __postgresql_bin_dir }}/initdb -D {{ __postgresql_data_dir }}"
     creates: "{{ __postgresql_data_dir }}/PG_VERSION"
-  become: true
-  become_user: "{{ __postgresql_user }}"
   when: __postgresql_cluster_provider == "initdb"
   tags:
     - postgresql_cluster

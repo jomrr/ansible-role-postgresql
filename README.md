@@ -1197,9 +1197,9 @@ postgresql_publications:
 
 ## References
 
-- https://docs.ansible.com/ansible/latest/collections/community/postgresql/
-- https://www.postgresql.org/docs/current/logical-replication.html
-- https://www.postgresql.org/docs/current/ssl-tcp.html
+- [Ansible community.postgresql collection](https://docs.ansible.com/ansible/latest/collections/community/postgresql/)
+- [PostgreSQL logical replication](https://www.postgresql.org/docs/current/logical-replication.html)
+- [PostgreSQL SSL support](https://www.postgresql.org/docs/current/ssl-tcp.html)
 
 ## Author
 
