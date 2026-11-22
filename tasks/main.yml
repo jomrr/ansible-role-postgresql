@@ -21,11 +21,7 @@
   ansible.builtin.import_tasks: assert.yml
 
 - name: "POSTGRESQL | Manage packages"
-  become: true
-  become_user: root
-  ansible.builtin.package:
-    name: "{{ __postgresql_packages }}"
-    state: present
+  ansible.builtin.import_tasks: pg_packages.yml
   tags:
     - postgresql_install
 
@@ -68,6 +64,12 @@
   ansible.builtin.meta: flush_handlers
   tags:
     - postgresql_config
+
+- name: "POSTGRESQL | Check template database defaults"
+  ansible.builtin.import_tasks: pg_cluster_locale.yml
+  when: not ansible_check_mode or __postgresql_running
+  tags:
+    - postgresql_cluster
 
 - name: "POSTGRESQL | Manage runtime objects"
   ansible.builtin.import_tasks: pg_objects.yml

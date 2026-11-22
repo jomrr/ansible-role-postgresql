@@ -24,6 +24,13 @@
         name: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}"
       vars:
         postgresql_work_mem: "8MB"
+        postgresql_cluster_locale: C
+
+    - name: "POSTGRESQL | Assert both template locale mismatches are reported on the running cluster"
+      ansible.builtin.assert:
+        that:
+          - __postgresql_template_drift.query_result | map(attribute='datname') | list == ['template0', 'template1']
+        quiet: true
 
     - name: "POSTGRESQL | Read changed memory setting and server start time"
       become: true

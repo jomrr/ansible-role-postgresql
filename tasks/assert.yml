@@ -2,6 +2,16 @@
 # role: postgresql
 # file: tasks/assert.yml
 
+- name: "POSTGRESQL | Require explicit cluster locale and encoding"
+  ansible.builtin.assert:
+    that:
+      - postgresql_cluster_locale is string and postgresql_cluster_locale | trim | length > 0
+      - postgresql_cluster_encoding is string and postgresql_cluster_encoding | trim | length > 0
+    quiet: true
+    fail_msg: A nonempty cluster locale and encoding are required.
+  tags:
+    - postgresql_validate
+
 - name: "POSTGRESQL | Assert extra configuration contents"
   ansible.builtin.assert:
     that:

@@ -10,12 +10,29 @@
   check_mode: false
   when: __postgresql_cluster_provider == "postgresql_common"
 
+- name: "POSTGRESQL | Initialize Debian main cluster with pg_createcluster"
+  become: true
+  become_user: root
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/pg_createcluster
+      - "--locale={{ postgresql_cluster_locale }}"
+      - "--encoding={{ postgresql_cluster_encoding }}"
+      - "{{ __postgresql_major_version }}"
+      - "{{ __postgresql_cluster_name }}"
+    creates: "{{ __postgresql_data_dir }}/PG_VERSION"
+  when: __postgresql_cluster_provider == "postgresql_common"
+
 - name: "POSTGRESQL | Initialize PostgreSQL cluster with postgresql-setup"
   become: true
   become_user: root
   ansible.builtin.command:
     cmd: "{{ __postgresql_setup_bin }} --initdb"
     creates: "{{ __postgresql_data_dir }}/PG_VERSION"
+  environment:
+    PGSETUP_INITDB_OPTIONS: >-
+      {{ ('--locale=' ~ postgresql_cluster_locale) | quote }}
+      {{ ('--encoding=' ~ postgresql_cluster_encoding) | quote }}
   when: __postgresql_cluster_provider == "postgresql_setup"
   tags:
     - postgresql_cluster
@@ -37,7 +54,12 @@
   become: true
   become_user: "{{ __postgresql_user }}"
   ansible.builtin.command:
-    cmd: "{{ __postgresql_bin_dir }}/initdb -D {{ __postgresql_data_dir }}"
+    argv:
+      - "{{ __postgresql_bin_dir }}/initdb"
+      - -D
+      - "{{ __postgresql_data_dir }}"
+      - "--locale={{ postgresql_cluster_locale }}"
+      - "--encoding={{ postgresql_cluster_encoding }}"
     creates: "{{ __postgresql_data_dir }}/PG_VERSION"
   when: __postgresql_cluster_provider == "initdb"
   tags:

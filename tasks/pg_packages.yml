@@ -1,0 +1,60 @@
+---
+# role: postgresql
+# file: tasks/pg_packages.yml
+
+- name: "POSTGRESQL | Read Debian server package installation status"
+  ansible.builtin.command:
+    argv:
+      - dpkg-query
+      - --show
+      - '--showformat=${db:Status-Status}'
+      - postgresql
+    expand_argument_vars: false
+  check_mode: false
+  changed_when: false
+  register: __postgresql_server_package
+  failed_when: __postgresql_server_package.rc not in [0, 1]
+  when: __postgresql_cluster_provider == "postgresql_common"
+
+- name: "POSTGRESQL | Install Debian cluster management tools before server packages"
+  become: true
+  become_user: root
+  ansible.builtin.apt:
+    name: postgresql-common
+    state: present
+    install_recommends: false
+  when:
+    - __postgresql_cluster_provider == "postgresql_common"
+    - __postgresql_server_package.stdout != "installed"
+
+- name: "POSTGRESQL | Install packages with explicit cluster creation"
+  block:
+    - name: "POSTGRESQL | Suppress automatic Debian main cluster creation during installation"
+      become: true
+      become_user: root
+      ansible.builtin.blockinfile:
+        path: /etc/postgresql-common/createcluster.conf
+        marker: "# {mark} Ansible PostgreSQL package installation"
+        block: create_main_cluster = false
+      when:
+        - __postgresql_cluster_provider == "postgresql_common"
+        - __postgresql_server_package.stdout != "installed"
+        - not ansible_check_mode
+
+    - name: "POSTGRESQL | Ensure PostgreSQL packages are present"
+      become: true
+      become_user: root
+      ansible.builtin.package:
+        name: "{{ __postgresql_packages }}"
+        state: present
+  always:
+    - name: "POSTGRESQL | Restore Debian cluster creation policy"
+      become: true
+      become_user: root
+      ansible.builtin.blockinfile:
+        path: /etc/postgresql-common/createcluster.conf
+        marker: "# {mark} Ansible PostgreSQL package installation"
+        state: absent
+      when:
+        - __postgresql_cluster_provider == "postgresql_common"
+        - not ansible_check_mode

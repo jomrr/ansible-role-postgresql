@@ -5,5 +5,19 @@
 - name: "POSTGRESQL | Converge PostgreSQL"
   hosts: all
   gather_facts: true
+  pre_tasks:
+    - name: "POSTGRESQL | Request a different cluster locale in the dry run"
+      ansible.builtin.set_fact:
+        postgresql_cluster_locale: C
+      when: ansible_check_mode
   roles:
     - role: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}"
+  post_tasks:
+    - name: "POSTGRESQL | Assert only mismatching templates were reported"
+      ansible.builtin.assert:
+        that:
+          - __postgresql_template_drift is not changed
+          - >-
+            __postgresql_template_drift.query_result | map(attribute='datname') | list
+            == (['template0', 'template1'] if ansible_check_mode else [])
+        quiet: true

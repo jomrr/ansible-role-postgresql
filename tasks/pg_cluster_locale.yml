@@ -1,0 +1,42 @@
+---
+# role: postgresql
+# file: tasks/pg_cluster_locale.yml
+
+- name: "POSTGRESQL | Read template databases with different cluster defaults"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  community.postgresql.postgresql_query:
+    login_db: postgres
+    login_user: postgres
+    login_port: "{{ __postgresql_login_port if ansible_check_mode else postgresql_port }}"
+    login_unix_socket: "{{ __postgresql_login_socket if ansible_check_mode else omit }}"
+    query: >-
+      WITH requested AS (
+        SELECT CASE WHEN %(locale)s IN ('C', 'POSIX') THEN ARRAY['c', 'posix']
+                    ELSE ARRAY[replace(lower(%(locale)s), 'utf-8', 'utf8')] END AS locales
+      )
+      SELECT datname, datcollate, datctype, pg_encoding_to_char(encoding) AS encoding
+      FROM pg_database CROSS JOIN requested
+      WHERE datname IN ('template0', 'template1')
+        AND (encoding <> pg_char_to_encoding(%(encoding)s)
+             OR replace(lower(datcollate), 'utf-8', 'utf8') <> ALL(requested.locales)
+             OR replace(lower(datctype), 'utf-8', 'utf8') <> ALL(requested.locales))
+      ORDER BY datname
+    named_args:
+      encoding: "{{ postgresql_cluster_encoding }}"
+      locale: "{{ postgresql_cluster_locale }}"
+  register: __postgresql_template_drift
+  check_mode: false
+  changed_when: false
+
+- name: "POSTGRESQL | Report template locale or encoding mismatch"
+  ansible.builtin.debug:
+    msg: >-
+      {{ __postgresql_template.datname }} has LC_COLLATE={{ __postgresql_template.datcollate }},
+      LC_CTYPE={{ __postgresql_template.datctype }}, encoding={{ __postgresql_template.encoding }}.
+      Requested locale={{ postgresql_cluster_locale }}, encoding={{ postgresql_cluster_encoding }}.
+  # postgresql_query returns {} rather than [] when the SELECT matches no rows.
+  loop: "{{ __postgresql_template_drift.query_result | default([], true) }}"
+  loop_control:
+    loop_var: __postgresql_template
+    label: "{{ __postgresql_template.datname }}"

@@ -27,6 +27,11 @@
                  current_setting('max_prepared_transactions')::int AS prepared,
                  current_setting('max_locks_per_transaction')::int AS locks,
                  pg_has_role('app', 'readonly', 'member') AS membership,
+                 (SELECT count(*) FROM pg_database
+                  WHERE datname IN ('template0', 'template1', 'appdb')
+                    AND lower(datcollate) IN ('c.utf-8', 'c.utf8')
+                    AND lower(datctype) IN ('c.utf-8', 'c.utf8')
+                    AND encoding = pg_char_to_encoding('UTF8')) AS inherited_defaults,
                  (SELECT pg_tablespace_location(oid) FROM pg_tablespace
                   WHERE spcname = 'molecule_space') AS tablespace,
                  (SELECT count(*) FROM pg_file_settings WHERE error IS NOT NULL)
@@ -46,6 +51,7 @@
           - __postgresql_verified.query_result[0].prepared == 10
           - __postgresql_verified.query_result[0].locks == 128
           - __postgresql_verified.query_result[0].membership
+          - __postgresql_verified.query_result[0].inherited_defaults == 3
           - __postgresql_verified.query_result[0].tablespace == '/var/lib/pgsql/molecule-tablespace'
           - __postgresql_verified.query_result[0].errors == 0
         quiet: true

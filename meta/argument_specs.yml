@@ -19,6 +19,20 @@ argument_specs:
         description:
           - Suppress logs and diffs when processing credentials, free-form settings, or
             stored connection data.
+      postgresql_cluster_locale:
+        type: str
+        required: false
+        default: C.UTF-8
+        description:
+          - Locale passed to cluster initialization. Existing template database locales
+            are reported if they differ, never changed.
+      postgresql_cluster_encoding:
+        type: str
+        required: false
+        default: UTF-8
+        description:
+          - Encoding passed to cluster initialization. Existing template database encodings
+            are reported if they differ, never changed.
       postgresql_listen_addresses:
         type: list
         elements: str

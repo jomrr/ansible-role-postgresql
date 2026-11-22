@@ -15,17 +15,12 @@ provisioner:
       callbacks_enabled: "ansible.posix.profile_tasks,ansible.posix.timer"
       callback_result_format: "yaml"
       allow_world_readable_tmpfiles: false
-    ssh_connection:
+    connection:
       pipelining: true
-  log: true
-  playbooks:
-    prepare: "../resources/playbooks/prepare.yml"
-    converge: "../resources/playbooks/converge.yml"
-    verify: "../resources/playbooks/verify.yml"
-    side_effect: "../resources/playbooks/side_effect.yml"
   inventory:
     group_vars:
       all:
+        ansible_podman_mount_detection: false
         ansible_user: "molecule"
         postgresql_port: 5433
         postgresql_shared_buffers: "128MB"
@@ -46,7 +41,6 @@ provisioner:
         postgresql_databases:
           - name: "appdb"
             owner: "app"
-            encoding: "UTF8"
         postgresql_extensions:
           - name: "pgcrypto"
             database: "appdb"
@@ -88,6 +82,12 @@ provisioner:
             user: "all"
             address: "127.0.0.1/32"
             method: "scram-sha-256"
+  log: true
+  playbooks:
+    prepare: "../resources/playbooks/prepare.yml"
+    converge: "../resources/playbooks/converge.yml"
+    verify: "../resources/playbooks/verify.yml"
+    side_effect: "../resources/playbooks/side_effect.yml"
 verifier:
   name: "ansible"
 scenario:

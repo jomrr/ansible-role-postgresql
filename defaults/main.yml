@@ -9,6 +9,12 @@
 # Suppress logs and diffs when processing credentials, free-form settings, or stored connection data.
 postgresql_no_log: true
 
+# Operating system locale used to initialize the template databases.
+postgresql_cluster_locale: "C.UTF-8"
+
+# Server encoding used to initialize the template databases.
+postgresql_cluster_encoding: "UTF-8"
+
 ################################################################################
 # Network runtime
 ################################################################################

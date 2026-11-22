@@ -42,6 +42,8 @@ This role installs, configures, and manages PostgreSQL runtime state.
   collections.yml.
 - Target host must provide psycopg2 or psycopg3 through the platform package
   list.
+- On a new cluster the requested locale must be available on the host and
+  compatible with the requested database encoding.
 - Local Unix-socket access as the PostgreSQL superuser postgres must use peer
   authentication.
 - The first HBA entry must be local all postgres peer without authentication
@@ -71,6 +73,32 @@ Default:
 
 ```yaml
 postgresql_no_log: true
+```
+
+### `postgresql_cluster_locale`
+
+Type: `str`. Required: `false`.
+
+Locale passed to cluster initialization. Existing template database locales are
+reported if they differ, never changed.
+
+Default:
+
+```yaml
+postgresql_cluster_locale: C.UTF-8
+```
+
+### `postgresql_cluster_encoding`
+
+Type: `str`. Required: `false`.
+
+Encoding passed to cluster initialization. Existing template database encodings
+are reported if they differ, never changed.
+
+Default:
+
+```yaml
+postgresql_cluster_encoding: UTF-8
 ```
 
 ### `postgresql_listen_addresses`
@@ -1061,6 +1089,8 @@ Package and template tasks support check mode. First-run cluster initialization
 and database-object changes depend on platform command/module support.
 
 - Read-only cluster discovery commands are marked changed_when=false.
+- A dry run against a running cluster also reports template locale and encoding
+  differences.
 - PostgreSQL object modules from community.postgresql provide check mode where
   supported by the module.
 
@@ -1107,8 +1137,16 @@ and restarts happen only through handlers.
   related PostgreSQL objects.
 - Logical replication copies DML changes, not DDL. Schema migrations must be
   orchestrated outside this role.
-- Debian and Ubuntu use the package-provided main cluster and resolve its
-  standard paths from pg_config --bindir.
+- Debian and Ubuntu temporarily disable automatic main cluster creation during
+  package installation, then create main explicitly with pg_createcluster. The
+  role does not set defaults for future pg_createcluster calls.
+- New clusters default to locale C.UTF-8 and encoding UTF-8 (shown as UTF8 by
+  PostgreSQL). Override postgresql_cluster_locale and
+  postgresql_cluster_encoding before the first installation. Changing them never
+  reinitializes an existing cluster.
+- New databases inherit LC_COLLATE, LC_CTYPE and encoding from the selected
+  template (normally template1). The role reports differences for template0 and
+  template1 separately; it does not alter either template or existing databases.
 - TLS configuration settings are managed as PostgreSQL config values;
   certificate issuance and file deployment stay outside this role.
 
